@@ -1,0 +1,4 @@
+- A CFD solver that can be installed on a Linux HPC system
+- A Linux HPC system that has basic tools (such as OpenHPC) installed
+- A Google account
+- RClone
