@@ -1,0 +1,1 @@
+This file is the response file you receive because you selected the "High" option in the Google Form.
