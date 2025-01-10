@@ -1,0 +1,77 @@
+# CHARLES TEMPLATE
+#
+RUN_SERIAL
+LAMBDA_MAXITER = 800
+RESTART = ./isolated.mles #result.00000100.sles
+INIT time=0.0
+INIT step=0 
+INIT u=12 0 0
+INIT  p=0
+
+# equation of state stuff ... confirm values for wind tunnel
+EOS HELMHOLTZ
+RHO = 1.225
+MU = 1.7894e-5
+#sqrt(1.4 * 287.058 * 298.15)
+HELMHOLTZ_SOS 340.65  #speed of sound at relevant conditions
+#HELMHOLTZ_CORRECTION
+
+#RUNTIME 0.95  #hours, wall time
+NSTEPS = 151000
+#TIMESTEP DT = 1.0e-03
+TIMESTEP DT = 3e-04
+#TIMESTEP DT = 5.0e-04
+CHECK_INTERVAL 100   #log file report every n steps
+
+WRITE_RESULT NAME=data/result INTERVAL=10000  #write a full restart file every n steps
+
+#WHEN (step>10)
+#hold on
+#ENDWHEN
+
+RESET_STATS
+#WHEN (step>10000)
+STATS u p rho
+RESET_STATS TIME=5
+#ENDWHEN
+
+# subgrid model
+SGS_MODEL VREMAN
+
+
+# advanced multigrid solver options
+MOMENTUM_RELAX 1.0 # Jacobi and GS might need < 1.0
+MOMENTUM_SOLVER PATR
+MOMENTUM_MAXITER 1000
+MOMENTUM_ZERO 1e-6
+
+PRESSURE_SOLVER MG
+PRESSURE_NCG 2
+PRESSURE_AGGLOMERATION_FACTOR 64
+PRESSURE_SPLIT_ORPHANED_COLORS true
+PRESSURE_SMOOTHER CG
+PRESSURE_RELAX 1.0
+PRESSURE_MAXITER 1000
+PRESSURE_ZERO 1e-6
+PRESSURE_VERBOSE
+
+FLUSH_PROBES 1000 #default is 1000
+
+#Boundary Conditions
+x0_turb                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ 100 NK 100 LAGT_I 0.0357 LAGT_J 0.0062 LAGT_K 0.0147\
+                                   CONTINUITY_CORRECTION NONE \
+                                   PROFILE ASCII_UREY ./test_WOW_x2.5_mod.dat
+x0_ABL                            = INLET_PROFILE FILE UInlet_fluent_WOW_X2.dat FORMAT FLUENT_PROFILE
+outlet                            = OUTLET 1.0 0.1 0.0 0.0 LOCAL_U
+ground                            = WM_ALG ROUGHNESS_HEIGHT 0.05
+top                               = SLIP
+wow_y2e2                            = WALL
+#wow_campus                          = WALL
+rough                            = WALL
+left = SLIP
+right = SLIP
+#z0 periodic
+#z1 periodic
+
+SPONGE STRENGTH 50 VELOCITY PROFILE ./test_WOW_x2.5_mod.dat GEOM PLANE 10 0 0 1 0 0 FLIP 
+A_SGS_SPONGE COEFF 100.0 GEOM PLANE -4 0.0 0.0 1.0 0.0 0.0

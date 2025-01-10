@@ -1,0 +1,4 @@
+Mesh refinement: Coarse
+Wind direction: 10
+Wind speed (m/s): 12
+Terrain inflow category: Category 2

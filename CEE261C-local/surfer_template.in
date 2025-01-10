@@ -1,0 +1,30 @@
+# SURFER TEMPLATE
+SURF STL ./geometries/y2e2_new_assem_to_1part_fix_creo.stl
+RENAME_ZONE Y2E2_NEW_ASSEM_TO_1PART_FIX wow_y2e2
+
+SURF STL ./geometries/roughelements4_full.stl
+RENAME_ZONE roughelements4_full.stl rough
+
+SURF STL_GROUP ./Domain/inlet.stl ./Domain/outlet.stl ./Domain/left.stl ./Domain/right.stl ./Domain/top.stl ./Domain/ground.stl  ./Domain/coLeft.stl  ./Domain/coRight.stl ./Domain/inlet_top.stl 
+
+RENAME_ZONE inlet.stl x0_turb
+RENAME_ZONE outlet.stl outlet
+RENAME_ZONE left.stl left
+RENAME_ZONE right.stl right
+RENAME_ZONE top.stl top
+RENAME_ZONE ground.stl ground
+MOVE_TO_ZONE NAME x0_ABL ZONE_NAMES coRight.stl,coLeft.stl,inlet_top.stl
+
+FLIP ZONE_NAMES ground,left,outlet
+ZIP_OPEN_EDGES
+
+ROTATE AXIS  1 0 0 POINT 0 0 0 ANGLE -90.0 ZONE_NAMES wow_y2e2,rough
+ROTATE AXIS  0 1 0 POINT 0 0 0 ANGLE 90.0 ZONE_NAMES wow_y2e2,rough
+
+ROTATE AXIS  0 1 0 POINT 0 0 0 ANGLE {WIND_DIRECTION} ZONE_NAMES wow_y2e2 
+
+FLIP ZONE_NAMES rough
+
+FLIP ZONE_NAMES wow_y2e2
+
+WRITE_SBIN empty_domain01.sbin
