@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Path to the rclone_monitor.sh script
-RCLONE_MONITOR_SCRIPT="/home/users/tvarg/CFDClass-local/rclone_monitor.sh"
+RCLONE_MONITOR_SCRIPT="./rclone_monitor.sh"
 
 # Log file to record activity
 LOG_FILE="rclone_monitor_log.txt"

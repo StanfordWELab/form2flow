@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define remote and local directories
-REMOTE_DIR="gdrive:/CFDClass/"
-LOCAL_DIR="/home/users/tvarg/CFDClass-local/"
+REMOTE_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW"
+LOCAL_DIR="./"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
 CURRENT_LIST="/tmp/current_list.txt"
 
