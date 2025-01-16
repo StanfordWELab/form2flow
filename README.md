@@ -19,3 +19,15 @@ The tool was presented at the American Physical Society's Division of Fluid Dyna
 [Form to Flow: a cloud-based workflow automation system for introductory CFD courses](https://meetings.aps.org/Meeting/DFD24/Session/L31.8).
 
 The talk was not recorded but the slides are found in this repository: ```aps_form_to_flow.pptx```, which might be a useful reference for the motivation behind his project.
+
+## CEE261C Notes
+
+### Running rclone monitor in background
+The command to run the monitor in the background is:
+`nohup ./rclone_monitor_runner.sh &`
+
+To check if it is running:
+`ps aux | grep rclone_monitor_runner.sh`
+
+To kill:
+`kill <ID>`
