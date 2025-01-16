@@ -3,3 +3,4 @@ student*/
 *_log.txt
 *.out
 rclone_previous_list.txt
+*.png
