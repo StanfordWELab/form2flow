@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Define remote and local directories
-REMOTE_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW"
-LOCAL_DIR="./"
+REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
+REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW/"
+LOCAL_DIR="./SUBS/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
 CURRENT_LIST="/tmp/current_list.txt"
 
@@ -17,7 +18,7 @@ if [ ! -f "$PREVIOUS_LIST" ]; then
 fi
 
 # Fetch the current file list from the remote directory using checksum
-rclone ls --checksum "$REMOTE_DIR" | sort > "$CURRENT_LIST"
+rclone ls --checksum "$REMOTE_SUBS_DIR" | sort > "$CURRENT_LIST"
 
 # Compare the current list with the previous list to find new entries
 CHANGES=$(diff --changed-group-format='%>' --unchanged-group-format='' "$PREVIOUS_LIST" "$CURRENT_LIST")
@@ -34,7 +35,7 @@ if [ -n "$CHANGES" ]; then
         
         # Determine the local path for the item
         LOCAL_PATH="$LOCAL_DIR$ITEM"
-        REMOTE_PATH="$REMOTE_DIR$ITEM"
+        REMOTE_PATH="$REMOTE_SUBS_DIR$ITEM"
         
         # Ensure the local directory structure exists
         LOCAL_DIR_PATH=$(dirname "$LOCAL_PATH")
@@ -78,3 +79,14 @@ fi
 
 # Update the previous list file
 mv "$CURRENT_LIST" "$PREVIOUS_LIST"
+
+# sync results to remote
+echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
+rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
+    --filter "+ *.sbin" \
+    --filter "+ */surfer.log" \
+    --filter "+ */stitch.log" \
+    --filter "+ */charles.log" \
+    --filter "+ */.png" \
+    --filter "- *" \
+    --progress

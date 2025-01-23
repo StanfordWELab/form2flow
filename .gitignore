@@ -5,4 +5,5 @@ student*/
 rclone_previous_list.txt
 *.png
 *.stl
+*/SUBS/*
 ss/*
