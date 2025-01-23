@@ -4,3 +4,4 @@ student*/
 *.out
 rclone_previous_list.txt
 *.png
+*.stl

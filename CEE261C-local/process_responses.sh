@@ -1,33 +1,22 @@
 #!/bin/bash
 
-# Base directory passed as an argument
+# Base directory where files are located
 FOLDER_PATH="$1"
 
-# Ensure the folder path exists
-if [ ! -d "$FOLDER_PATH" ]; then
-    echo "Invalid folder path: $FOLDER_PATH"
-    exit 1
-fi
+# Directory containing the template files
+TEMPLATE_DIR="/scratch/groups/gorle/CFDClass-local/template_files"
+
+# Define the template file paths
+CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_template.in"
+STITCH_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_template.in"
+JOB_TEMPLATE_FILE="$TEMPLATE_DIR/job_template.sh"
 
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
 
-# Check if the responses.txt file exists
-if [ ! -f "$RESPONSE_FILE" ]; then
-    echo "responses.txt not found in $FOLDER_PATH, skipping."
-    exit 1
-fi
-
 # Extract input parameters from responses.txt
-WIND_DIRECTION=$(grep -i "Wind direction:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-WIND_SPEED=$(grep -i "Wind speed (m/s):" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+MESH_REFINEMENT=$(grep -i "Mesh refinement:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 TERRAIN_CATEGORY=$(grep -i "Terrain inflow category:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-
-# Validate input parameters
-if [ -z "$WIND_DIRECTION" ] || [ -z "$WIND_SPEED" ] || [ -z "$TERRAIN_CATEGORY" ]; then
-    echo "Missing Wind direction, Wind speed, or Terrain category in $RESPONSE_FILE, skipping folder $FOLDER_PATH"
-    exit 1
-fi
 
 # Process the terrain category
 case "$TERRAIN_CATEGORY" in
@@ -35,30 +24,43 @@ case "$TERRAIN_CATEGORY" in
     "Category 2") TERRAIN_VALUE="0.05" ;;
     "Category 3") TERRAIN_VALUE="0.3" ;;
     "Category 4") TERRAIN_VALUE="1.0" ;;
-    *)
-        echo "Unknown Terrain inflow category in $RESPONSE_FILE, skipping folder $FOLDER_PATH"
-        exit 1
-        ;;
+    *) echo "Invalid terrain category: $TERRAIN_CATEGORY"; exit 1 ;;
 esac
 
-# Replace placeholders in charles_template.in
-CHARLES_TEMPLATE_FILE="charles_template.in"
-CHARLES_FILE=$(sed -e "s/{WIND_SPEED}/$WIND_SPEED/" -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" "$CHARLES_TEMPLATE_FILE")
+# Process the mesh refinement
+case "$MESH_REFINEMENT" in
+    "Coarse") MESH_SIZE="1.2" ;;
+    "Fine") MESH_SIZE="0.08" ;;
+    "Finer") MESH_SIZE="0.04" ;;
+    *) echo "Invalid mesh refinement: $MESH_REFINEMENT"; exit 1 ;;
+esac
 
-# Replace placeholders in surfer_template.in
-SURFER_TEMPLATE_FILE="surfer_template.in"
-SURFER_FILE=$(sed "s/{WIND_DIRECTION}/$WIND_DIRECTION/" "$SURFER_TEMPLATE_FILE")
+# Replace placeholders in templates
+CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" "$CHARLES_TEMPLATE_FILE")
+STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
 
-# Write the generated files
+# Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
-SURFER_FILE_PATH="$FOLDER_PATH/surfer_file.in"
+STITCH_FILE_PATH="$FOLDER_PATH/stitch_file.in"
+
 echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
-echo "$SURFER_FILE" > "$SURFER_FILE_PATH"
+echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
+
+# Copy the inflow files
+cp -r /scratch/groups/gorle/CFDClass-local/template_files/inflow_files "$FOLDER_PATH"
+
+# Copy the job_template.sh file
+cp /scratch/groups/gorle/CFDClass-local/template_files/job_template.sh "$FOLDER_PATH"
 
 # Print the details of the operation
 echo "Processing new folder: $FOLDER_PATH"
 echo "Input parameters:"
-echo "  Wind Speed: $WIND_SPEED m/s"
-echo "  Wind Direction: $WIND_DIRECTION°"
+echo "  Mesh Refinement: $MESH_REFINEMENT"
 echo "  Terrain Inflow Category: $TERRAIN_CATEGORY"
-echo "Created charles_file.in and surfer_file.in in $FOLDER_PATH"
+echo "Created charles_file.in, stitch_file.in, copied inflow files, and job_template.sh to $FOLDER_PATH"
+
+# Change directory to the submission folder and submit the job
+cd "$FOLDER_PATH"
+sbatch job_template.sh
+
+echo "Job submitted!"

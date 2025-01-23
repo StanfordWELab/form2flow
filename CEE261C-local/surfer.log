@@ -1,0 +1,47 @@
+start time: Wed Jan 22 14:50:36 2025
+/home/groups/gorle/cascade-inflow/bin/surfer.exe running on 1 cores, 1 nodes (1 cores per node)
+version: heads/dev-0-g8321d70 built: Tue Jul 30 14:41:17 PDT 2024
+source modifications (staged):
+source modifications (unstaged):
+M	src/charles/cti_solver_helm.cpp
+M	src/charles/cti_solver_helm.hpp
+untracked  modifications:
+old_solver_drag/Makefile
+old_solver_drag/charles_helm.cu
+original_charles_helm/cti_solver_helm.cpp
+original_charles_helm/cti_solver_helm.hpp
+solver/Makefile
+solver/charles_helm.cu
+solver/charles_ig.cu
+solver_drag/Makefile
+solver_drag/charles_helm.cu
+========================== input params: raw sources ===========================
+# params from commandline input file "surfer_file.in"...
+# WARNING: could not find or open commandline input file "surfer_file.in": skipping
+======================= end of input params: raw sources =======================
+============================== final input params ==============================
+========================== end of final input params ===========================
+ > Found env CTI_LICENSE=/home/users/tvarg/license.dat
+=============================== license summary ================================
+ > License Verification Successful!
+ >   User:              Themistoklis Vargiemezis
+ >   Organization:      Stanford University
+ >   Serial Number:     463c991579303922
+ >   Expiration Date:   Sat Jan 10 00:00:00 2026
+ >   Fingerprint Check: Found Matching ID!
+============================ end of license summary ============================
+surfer::init
+ > Using home directory for CTI run log ... /home/users/tvarg/cti_rdb.db
+ > logged action: SIMULATION_INIT, rank_0_Host ... sh02-ln03.stanford.edu
+ > logged action: SIMULATION_RUN, rank_0_Host ... sh02-ln03.stanford.edu
+surfer::run
+surfer::finalize
+ > logged action: SIMULATION_FINAL, rank_0_Host ... sh02-ln03.stanford.edu
+cti::finalize(): shutting down...
+============================== file dependencies ===============================
+=========================== end of file dependencies ===========================
+savedFileMap.size(): 0
+============================== param usage summary =============================
+CTI_LICENSE # not found by getParam
+========================== end of param usage summary ==========================
+SimpleSurface::clearSzosz()
