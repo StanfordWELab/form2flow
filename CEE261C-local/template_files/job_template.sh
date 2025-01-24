@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=class
 #SBATCH --partition=serc
-#SBATCH -N 2
-#SBATCH -n 64
-###########SBATCH --mem=72G
+#SBATCH -n 32
 #SBATCH --time=12:00:00
-#SBATCH --constraint="[CLASS:SH3_CBASE|CLASS:SH3_CBASE.1|CPU_GEN:SKX]" 
+#SBATCH --constraint="[CLASS:SH3_CBASE|CLASS:SH3_CBASE.1|CPU_GEN:SKX]"
+# #SBATCH --mem=72G
+# #SBATCH -N 2
 
 module purge
 
