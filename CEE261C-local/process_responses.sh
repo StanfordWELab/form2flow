@@ -4,7 +4,7 @@
 FOLDER_PATH="$1"
 
 # Directory containing the template files
-TEMPLATE_DIR="/scratch/groups/gorle/CFDClass-local/template_files"
+TEMPLATE_DIR="./template_files"
 
 # Define the template file paths
 CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_template.in"
