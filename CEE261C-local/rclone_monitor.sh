@@ -55,13 +55,6 @@ if [ -n "$CHANGES" ]; then
             bash ./process_responses.sh "$FOLDER_PATH"
         fi
 
-        # Check if the copied file is responses_surfer.txt and process it
-        if [[ "$ITEM" == *"responses_surfer.txt" ]]; then
-            FOLDER_PATH=$(dirname "$LOCAL_PATH")
-            echo "Running process_responses_surfer.sh on $FOLDER_PATH"
-            bash ./process_responses_surfer.sh "$FOLDER_PATH"
-        fi
-
         # Check if the copied file is an .stl file
         if [[ "$ITEM" == *.stl ]]; then
             FOLDER_PATH=$(dirname "$LOCAL_PATH")
@@ -71,6 +64,13 @@ if [ -n "$CHANGES" ]; then
             else
                 echo "STL file already named 'building.stl', skipping rename."
             fi
+        fi
+
+        # Check if the copied file is responses_surfer.txt and process it
+        if [[ "$ITEM" == *"responses_surfer.txt" ]]; then
+            FOLDER_PATH=$(dirname "$LOCAL_PATH")
+            echo "Running process_responses_surfer.sh on $FOLDER_PATH"
+            bash ./process_responses_surfer.sh "$FOLDER_PATH"
         fi
     done < /tmp/new_items.txt
 else
@@ -87,6 +87,6 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ */surfer.log" \
     --filter "+ */stitch.log" \
     --filter "+ */charles.log" \
-    --filter "+ */.png" \
+    --filter "+ *.png" \
     --filter "- *" \
     --progress
