@@ -88,5 +88,6 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ */stitch.log" \
     --filter "+ */charles.log" \
     --filter "+ *.png" \
+    --filter "+ *slurm-*" \
     --filter "- *" \
     --progress
