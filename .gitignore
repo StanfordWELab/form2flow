@@ -5,5 +5,7 @@ student*/
 rclone_previous_list.txt
 *.png
 *.stl
+*.pid
+*.kil
 */SUBS/*
 ss/*

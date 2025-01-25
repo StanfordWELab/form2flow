@@ -1,5 +1,6 @@
-ps aux | grep rclone_monitor_runner.sh
+ps aux | grep "[r]clone_monitor_runner.sh"
 nohup ./rclone_monitor_runner.sh &
+rclone_monitor.kil in runner_outputs kills runner
 
 Directory Structure: Ensure the following structure inside template_files:
 template_files/
