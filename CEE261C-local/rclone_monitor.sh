@@ -48,13 +48,6 @@ if [ -n "$CHANGES" ]; then
         echo "Copying $REMOTE_PATH to $LOCAL_DIR_PATH"
         rclone copy --progress "$REMOTE_PATH" "$LOCAL_DIR_PATH"
 
-        # Check if the copied file is responses.txt and process it
-        if [[ "$ITEM" == *"responses.txt" ]]; then
-            FOLDER_PATH=$(dirname "$LOCAL_PATH")
-            echo "Running process_responses.sh on $FOLDER_PATH"
-            bash ./process_responses.sh "$FOLDER_PATH"
-        fi
-
         # Check if the copied file is an .stl file
         if [[ "$ITEM" == *.stl ]]; then
             FOLDER_PATH=$(dirname "$LOCAL_PATH")
@@ -64,6 +57,16 @@ if [ -n "$CHANGES" ]; then
             else
                 echo "STL file already named 'building.stl', skipping rename."
             fi
+        fi
+        
+    done < /tmp/new_items.txt
+
+    while IFS= read -r ITEM; do
+        # Check if the copied file is responses.txt and process it
+        if [[ "$ITEM" == *"responses.txt" ]]; then
+            FOLDER_PATH=$(dirname "$LOCAL_PATH")
+            echo "Running process_responses.sh on $FOLDER_PATH"
+            bash ./process_responses.sh "$FOLDER_PATH"
         fi
 
         # Check if the copied file is responses_surfer.txt and process it
