@@ -19,11 +19,18 @@ MESH_REFINEMENT=$(grep -i "Mesh refinement:" "$RESPONSE_FILE" | awk -F': ' '{pri
 TERRAIN_CATEGORY=$(grep -i "Terrain inflow category:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 SUID=$(grep -i "SUID:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Z_PLANES=$(grep -i "Post-processing z-plane heights:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+Y_PLANES=$(grep -i "Post-processing y-plane distances:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 
 # Convert Z_PLANES string into an array, trimming spaces from each element
 IFS=',' read -ra Z_PLANES_ARRAY <<< "$Z_PLANES"
 for i in "${!Z_PLANES_ARRAY[@]}"; do
     Z_PLANES_ARRAY[$i]=$(echo "${Z_PLANES_ARRAY[$i]}" | xargs) # trim spaces
+done
+
+# Convert Y_PLANES string into an array, trimming spaces from each element
+IFS=',' read -ra Y_PLANES_ARRAY <<< "$Y_PLANES"
+for i in "${!Y_PLANES_ARRAY[@]}"; do
+    Y_PLANES_ARRAY[$i]=$(echo "${Y_PLANES_ARRAY[$i]}" | xargs) # trim spaces
 done
 
 # Process the terrain category
@@ -43,7 +50,6 @@ case "$MESH_REFINEMENT" in
     *) echo "Invalid mesh refinement: $MESH_REFINEMENT"; exit 1 ;;
 esac
 
-
 # Replace placeholders in templates
 CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" "$CHARLES_TEMPLATE_FILE")
 STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
@@ -56,7 +62,13 @@ for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
 WRITE_IMAGE NAME= ./IMAGES/TOP_AVG_UMAG_${Z_HEIGHT} INTERVAL=5000 TARGET 0 0 0.6 CAMERA 0 0 10 UP 0 1 0 SIZE 1920 970 WIDTH 3.2 GEOM PLANE -1 0 ${Z_HEIGHT} 0 0 1 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB"
 done
 
-# Debugging output: Check what WRITE_IMAGE_COMMANDS looks like.
+# Generate WRITE_IMAGE commands for each y-plane distance
+for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
+    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+WRITE_IMAGE NAME= ./IMAGES/SIDE_AVG_UMAG_Y_${Y_DISTANCE} INTERVAL=5000 TARGET ${Y_DISTANCE} 0 0 CAMERA 10 0 0 UP 0 0 1 SIZE 1920 970 WIDTH 3.2 GEOM PLANE ${Y_DISTANCE} 0 0 -1 0 0 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB"
+done
+
+# Debugging output: Check what WRITE_IMAGE_COMMANDS looks like
 # DELETE LATER
 echo "WRITE_IMAGE_COMMANDS to be inserted:"
 echo "$WRITE_IMAGE_COMMANDS"
@@ -68,15 +80,14 @@ ESCAPED_WRITE_IMAGE_COMMANDS=$(echo "$WRITE_IMAGE_COMMANDS" | sed 's/[&\\]/\\&/g
 CHARLES_FILE="$CHARLES_FILE
 $ESCAPED_WRITE_IMAGE_COMMANDS"
 
-
 # Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
 STITCH_FILE_PATH="$FOLDER_PATH/stitch_file.in"
-JOB_TEMPLAT_PATH="$FOLDER_PATH/job_template.sh"
+JOB_TEMPLATE_PATH="$FOLDER_PATH/job_template.sh"
 
 echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
 echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
-echo "$JOB_TEMPLATE_FILE" > "$JOB_TEMPLAT_PATH"
+echo "$JOB_TEMPLATE_FILE" > "$JOB_TEMPLATE_PATH"
 
 # Copy the inflow files
 cp -r "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
@@ -93,7 +104,7 @@ echo "Created charles_file.in, stitch_file.in, copied inflow files, and job_temp
 
 # Change directory to the submission folder and submit the job
 cd "$FOLDER_PATH"
-# Uncoment this to submit jobs
+# Uncomment this to submit jobs
 sbatch job_template.sh
 
 echo "Job submitted!"
