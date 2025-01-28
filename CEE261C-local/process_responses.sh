@@ -4,7 +4,7 @@
 FOLDER_PATH="$1"
 
 # Directory containing the template files
-TEMPLATE_DIR="/scratch/groups/gorle/CFDClass-local/template_files"
+TEMPLATE_DIR="./template_files/"
 
 # Define the template file paths
 CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_template.in"
@@ -17,6 +17,7 @@ RESPONSE_FILE="$FOLDER_PATH/responses.txt"
 # Extract input parameters from responses.txt
 MESH_REFINEMENT=$(grep -i "Mesh refinement:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 TERRAIN_CATEGORY=$(grep -i "Terrain inflow category:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+SUID=$(grep -i "SUID:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Z_PLANES=$(grep -i "Post-processing z-plane heights:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 
 # Convert Z_PLANES string into an array, trimming spaces from each element
@@ -64,18 +65,26 @@ CHARLES_FILE=$(<"$CHARLES_TEMPLATE_FILE")
 CHARLES_FILE="$CHARLES_FILE
 $ESCAPED_WRITE_IMAGE_COMMANDS"
 
+# Replace placeholders in templates
+CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" "$CHARLES_FILE")
+STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
+JOB_TEMPLATE_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
+
+
 # Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
 STITCH_FILE_PATH="$FOLDER_PATH/stitch_file.in"
+JOB_TEMPLAT_PATH="$FOLDER_PATH/job_template.sh"
 
 echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
 echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
+echo "$JOB_TEMPLATE_FILE" > "$JOB_TEMPLAT_PATH"
 
 # Copy the inflow files
-cp -r /scratch/groups/gorle/CFDClass-local/template_files/inflow_files "$FOLDER_PATH"
+cp -r "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
 
 # Copy the job_template.sh file
-cp /scratch/groups/gorle/CFDClass-local/template_files/job_template.sh "$FOLDER_PATH"
+cp "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
 
 # Print the details of the operation
 echo "Processing new folder: $FOLDER_PATH"
@@ -87,6 +96,6 @@ echo "Created charles_file.in, stitch_file.in, copied inflow files, and job_temp
 # Change directory to the submission folder and submit the job
 cd "$FOLDER_PATH"
 # Uncoment this to submit jobs
-#sbatch job_template.sh
+sbatch job_template.sh
 
 echo "Job submitted!"
