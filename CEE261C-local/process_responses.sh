@@ -43,6 +43,12 @@ case "$MESH_REFINEMENT" in
     *) echo "Invalid mesh refinement: $MESH_REFINEMENT"; exit 1 ;;
 esac
 
+
+# Replace placeholders in templates
+CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" "$CHARLES_TEMPLATE_FILE")
+STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
+JOB_TEMPLATE_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
+
 # Generate WRITE_IMAGE commands for each z-plane height
 WRITE_IMAGE_COMMANDS=""
 for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
@@ -56,19 +62,11 @@ echo "WRITE_IMAGE_COMMANDS to be inserted:"
 echo "$WRITE_IMAGE_COMMANDS"
 
 # Escape special characters in WRITE_IMAGE_COMMANDS for use in sed
-ESCAPED_WRITE_IMAGE_COMMANDS=$(echo "$WRITE_IMAGE_COMMANDS" | sed 's/[&/\]/\\&/g')
-
-# Read the CHARLES template and append the WRITE_IMAGE commands at the end
-CHARLES_FILE=$(<"$CHARLES_TEMPLATE_FILE")
+ESCAPED_WRITE_IMAGE_COMMANDS=$(echo "$WRITE_IMAGE_COMMANDS" | sed 's/[&\\]/\\&/g')
 
 # Append the WRITE_IMAGE commands to the end of the CHARLES file
 CHARLES_FILE="$CHARLES_FILE
 $ESCAPED_WRITE_IMAGE_COMMANDS"
-
-# Replace placeholders in templates
-CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" "$CHARLES_FILE")
-STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
-JOB_TEMPLATE_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
 
 # Write the generated files to the folder
