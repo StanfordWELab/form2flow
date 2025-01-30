@@ -8,4 +8,6 @@ rclone_previous_list.txt
 *.pid
 *.kil
 */SUBS/*
+.vscode/*
 ss/*
+*_journal

@@ -56,15 +56,15 @@ PRESSURE_VERBOSE
 FLUSH_PROBES 1000 #default is 1000
 
 #Boundary Conditions
-X0                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ 100 NK 100 LAGT_I 0.0357 LAGT_J 0.0062 LAGT_K 0.0147\
+X0                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I 0.0357 LAGT_J 0.0062 LAGT_K 0.0147\
                                    CONTINUITY_CORRECTION NONE \
                                    PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
 X1                            = OUTLET 1.0 0.1 0.0 0.0 LOCAL_U
 Z0                            = WM_ALG ROUGHNESS_HEIGHT {TERRAIN_CATEGORY}
 Z1                               = SLIP
 BUILDING                            = WALL
-Y0 = SLIP
-Y1 = SLIP
+# Y0 = SLIP
+# Y1 = SLIP
 
 
 #SPONGE STRENGTH 50 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE 10 0 0 1 0 0 FLIP 
