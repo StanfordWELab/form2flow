@@ -33,7 +33,7 @@ esac
 case "$MESH_REFINEMENT" in
     "Coarse") MESH_SIZE="1.2" ;;
     "Fine") MESH_SIZE="0.08" ;;
-    "Finer") MESH_SIZE="0.04" ;;
+    "Finer") MESH_SIZE="0.02" ;;
     *) echo "Invalid mesh refinement: $MESH_REFINEMENT"; exit 1 ;;
 esac
 
@@ -59,6 +59,19 @@ Z_mesh=$(echo "$dz / $MESH_SIZE" | bc)
 # Convert to integer (floor)
 X_mesh_int=$(printf "%.0f" "$X_mesh")
 Z_mesh_int=$(printf "%.0f" "$Z_mesh")
+
+# Define minimum values
+MIN_DX=20
+MIN_DZ=20
+
+# Ensure dx and dz are not less than the minimum values
+if (( $(echo "$X_mesh_int < $MIN_DX" | bc -l) )); then
+    X_mesh_int=$MIN_DX
+fi
+
+if (( $(echo "$Z_mesh_int < $MIN_DZ" | bc -l) )); then
+    Z_mesh_int=$MIN_DZ
+fi
 
 # Print results
 echo "X distance in mesh units: $X_mesh_int"
