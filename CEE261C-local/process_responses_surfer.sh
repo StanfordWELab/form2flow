@@ -28,14 +28,17 @@ Y0=$(grep -i "Y0:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Y1=$(grep -i "Y1:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Z0=$(grep -i "Z0:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Z1=$(grep -i "Z1:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+P_length=$(echo "$Y1 - $Y0" | bc)
 
 # Print the extracted values for troubleshooting
 echo "Extracted values from responses_surfer.txt:"
 echo "  WIND_DIRECTION: $WIND_DIRECTION"
 echo "  X0: $X0, X1: $X1, Y0: $Y0, Y1: $Y1, Z0: $Z0, Z1: $Z1"
+echo "  Periodic length: $P_length"
 
 # Replace placeholders in the surfer_template.in file
 SURFER_FILE=$(sed -e "s/{WIND_DIRECTION}/$WIND_DIRECTION/" \
+                   -e "s/{P_length}/$P_length/" \
                    -e "s/{X_0}/$X0/" \
                    -e "s/{X_1}/$X1/" \
                    -e "s/{Y_0}/$Y0/" \

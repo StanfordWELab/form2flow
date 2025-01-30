@@ -93,4 +93,5 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ *.png" \
     --filter "+ *slurm-*" \
     --filter "- *" \
-    --progress
+    --skip-links \
+    --stats-one-line

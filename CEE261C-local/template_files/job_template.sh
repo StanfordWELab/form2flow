@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name={SUID}-WW
 #SBATCH --partition=serc
-#SBATCH -N 2
-#SBATCH -n 64
+#SBATCH -N 1
+#SBATCH -n 32
 #SBATCH --time=12:00:00
 #SBATCH --constraint="[CLASS:SH3_CBASE|CLASS:SH3_CBASE.1|CPU_GEN:SKX]"
 #SBATCH --mail-user={SUID}@stanford.edu

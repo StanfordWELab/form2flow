@@ -8,5 +8,6 @@ rclone_previous_list.txt
 *.pid
 *.kill
 */SUBS/*
-*/settings.json
+.vscode/*
 ss/*
+*_journal
