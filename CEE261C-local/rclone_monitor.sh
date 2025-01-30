@@ -81,7 +81,7 @@ else
 fi
 
 # Update the previous list file
-mv "$CURRENT_LIST" "$PREVIOUS_LIST"
+mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 
 # sync results to remote
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
