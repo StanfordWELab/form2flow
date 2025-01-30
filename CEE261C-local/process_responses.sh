@@ -33,7 +33,7 @@ esac
 case "$MESH_REFINEMENT" in
     "Coarse") MESH_SIZE="1.2" ;;
     "Fine") MESH_SIZE="0.08" ;;
-    "Finer") MESH_SIZE="0.02" ;;
+    "Finer") MESH_SIZE="0.04" ;;
     *) echo "Invalid mesh refinement: $MESH_REFINEMENT"; exit 1 ;;
 esac
 
