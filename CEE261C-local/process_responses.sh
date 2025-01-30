@@ -53,20 +53,20 @@ dz=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dz:") print $(i+1)}
 echo "Extracted values: dx=$dx, dy=$dy, dz=$dz"
 
 # Divide by MESH_SIZE and convert to integers
-X_mesh=$(echo "$dx / $MESH_SIZE" | bc)
+Y_mesh=$(echo "$dy / $MESH_SIZE" | bc)
 Z_mesh=$(echo "$dz / $MESH_SIZE" | bc)
 
 # Convert to integer (floor)
-X_mesh_int=$(printf "%.0f" "$X_mesh")
+Y_mesh_int=$(printf "%.0f" "$Y_mesh")
 Z_mesh_int=$(printf "%.0f" "$Z_mesh")
 
 # Define minimum values
-MIN_DX=20
-MIN_DZ=20
+MIN_DY=3
+MIN_DZ=3
 
 # Ensure dx and dz are not less than the minimum values
-if (( $(echo "$X_mesh_int < $MIN_DX" | bc -l) )); then
-    X_mesh_int=$MIN_DX
+if (( $(echo "$Y_mesh_int < $MIN_DY" | bc -l) )); then
+    Y_mesh_int=$MIN_DY
 fi
 
 if (( $(echo "$Z_mesh_int < $MIN_DZ" | bc -l) )); then
@@ -74,12 +74,12 @@ if (( $(echo "$Z_mesh_int < $MIN_DZ" | bc -l) )); then
 fi
 
 # Print results
-echo "X distance in mesh units: $X_mesh_int"
+echo "Y distance in mesh units: $Y_mesh_int"
 echo "Z distance in mesh units: $Z_mesh_int"
 
 # Replace placeholders in templates
 CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
-                   -e "s/{NJ}/$X_mesh_int/" \
+                   -e "s/{NJ}/$Y_mesh_int/" \
                    -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
 STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
 JOB_TEMPLATE_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
