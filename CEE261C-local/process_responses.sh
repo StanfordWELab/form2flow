@@ -10,6 +10,7 @@ TEMPLATE_DIR="./template_files/"
 CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_template.in"
 STITCH_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_template.in"
 JOB_TEMPLATE_FILE="$TEMPLATE_DIR/job_template.sh"
+SURFER_SBIN="./surfer_output.sbin"
 
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
@@ -36,8 +37,37 @@ case "$MESH_REFINEMENT" in
     *) echo "Invalid mesh refinement: $MESH_REFINEMENT"; exit 1 ;;
 esac
 
+# Get Domain Size
+# Run the command and capture output
+module purge
+module load system
+module load libpng/1.2.57
+module load openmpi/4.1.2
+output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
+
+# Extract dx, dy, and dz using awk
+dx=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dx:") print $(i+1)}')
+dy=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dy:") print $(i+1)}')
+dz=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dz:") print $(i+1)}')
+
+echo "Extracted values: dx=$dx, dy=$dy, dz=$dz"
+
+# Divide by MESH_SIZE and convert to integers
+X_mesh=$(echo "$dx / $MESH_SIZE" | bc)
+Z_mesh=$(echo "$dz / $MESH_SIZE" | bc)
+
+# Convert to integer (floor)
+X_mesh_int=$(printf "%.0f" "$X_mesh")
+Z_mesh_int=$(printf "%.0f" "$Z_mesh")
+
+# Print results
+echo "X distance in mesh units: $X_mesh_int"
+echo "Z distance in mesh units: $Z_mesh_int"
+
 # Replace placeholders in templates
-CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" "$CHARLES_TEMPLATE_FILE")
+CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
+                   -e "s/{NJ}/$X_mesh_int/" \
+                   -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
 STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
 JOB_TEMPLATE_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
