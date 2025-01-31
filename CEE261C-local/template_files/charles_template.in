@@ -18,7 +18,7 @@ HELMHOLTZ_SOS 340.65  #speed of sound at relevant conditions
 
 #RUNTIME 0.95  #hours, wall time
 NSTEPS = 30000
-TIMESTEP DT = 1e-03
+TIMESTEP DT = 1e-01
 CHECK_INTERVAL 100   #log file report every n steps
 
 #WRITE_RESULT NAME=data/result INTERVAL=10000  #write a full restart file every n steps
@@ -30,7 +30,7 @@ CHECK_INTERVAL 100   #log file report every n steps
 RESET_STATS
 #WHEN (step>10000)
 STATS u mag(u) p rho
-RESET_STATS TIME=2
+RESET_STATS TIME=500
 #ENDWHEN
 
 # subgrid model
