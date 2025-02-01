@@ -6,7 +6,7 @@ function onFormSubmit(e) {
   var classFolder = parentFolders.next();
 
   // Locate or create the SUBS folder
-  var subsFolder = getOrCreateFolder(classFolder, "SUBS-dev");
+  var subsFolder = getOrCreateFolder(classFolder, "SUBS");
 
   var responses = e.namedValues;
   var userEmail = responses['Email Address'][0].split('@')[0];
