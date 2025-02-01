@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define remote and local directories
-REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
+REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS-dev/"
 REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW/"
 LOCAL_DIR="./SUBS/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
@@ -81,7 +81,7 @@ else
 fi
 
 # Update the previous list file
-mv "$CURRENT_LIST" "$PREVIOUS_LIST"
+mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 
 # sync results to remote
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"

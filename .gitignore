@@ -6,7 +6,7 @@ rclone_previous_list.txt
 *.png
 *.stl
 *.pid
-*.kil
+*.kill
 */SUBS/*
 .vscode/*
 ss/*
