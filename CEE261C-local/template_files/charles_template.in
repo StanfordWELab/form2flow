@@ -5,7 +5,7 @@ LAMBDA_MAXITER = 800
 RESTART = ./stitch_output.mles
 INIT time=0.0
 INIT step=0 
-INIT u=15.2 0 0
+INIT u=7.0 0 0
 INIT  p=0
 
 # equation of state stuff ... confirm values for wind tunnel
@@ -18,7 +18,7 @@ HELMHOLTZ_SOS 340.65  #speed of sound at relevant conditions
 
 #RUNTIME 0.95  #hours, wall time
 NSTEPS = 30000
-TIMESTEP DT = 1e-01
+TIMESTEP DT = 5e-02
 CHECK_INTERVAL 100   #log file report every n steps
 
 #WRITE_RESULT NAME=data/result INTERVAL=10000  #write a full restart file every n steps
