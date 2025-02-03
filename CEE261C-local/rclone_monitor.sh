@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Define remote and local directories
-REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
+## Define the commented in directories.sh
+# REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
+source directories.sh
 REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW/"
 LOCAL_DIR="./SUBS/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
