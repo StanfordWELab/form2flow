@@ -11,3 +11,4 @@ rclone_previous_list.txt
 .vscode/*
 ss/*
 *_journal
+*directories.sh

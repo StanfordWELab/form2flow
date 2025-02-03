@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Define remote and local directories
-REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS-dev/"
+## Define the commented in directories.sh
+# REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
+source directories.sh
 REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW/"
 LOCAL_DIR="./SUBS/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
@@ -86,6 +88,7 @@ mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 # sync results to remote
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
+    --filter "- *_VID_*" \
     --filter "+ *.sbin" \
     --filter "+ */surfer.log" \
     --filter "+ */stitch.log" \

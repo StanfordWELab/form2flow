@@ -24,8 +24,14 @@ if [ -f "$PID_FILE" ]; then
     exit 1
 fi
 
-# Create a PID file
-echo $$ > "$PID_FILE"
+# Get the node name
+NODE_NAME=$(hostname)
+
+# Get the process ID
+PID=$$
+
+# Store both the PID and the node name in the PID file
+echo "${PID} ${NODE_NAME}" > "$PID_FILE"
 
 # Trap signals to remove the PID file on exit
 trap 'rm -f "$PID_FILE"; exit' SIGINT SIGTERM EXIT
