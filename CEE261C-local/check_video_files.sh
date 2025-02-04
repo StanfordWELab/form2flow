@@ -31,11 +31,13 @@ find ./SUBS -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
         done | sort -u > "$output_file"
         
         echo "Created video image list for: $dir_path"
-        
+
         # Read the video_images.txt file and submit SLURM jobs
         while read -r image_base; do
+            cd "$dir_path"
             echo "Submitting job for: $image_base"
-            ./create_videos.slurm "$image_base" "$dir_path"
+            sbatch ../../../../create_videos.slurm "$image_base"
+            cd -
         done < "$output_file"
     else
         echo "Warning: No IMAGES folder found in $dir_path"

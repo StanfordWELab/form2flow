@@ -88,8 +88,6 @@
 # Check for video files
 ./check_video_files.sh
 
-./create_videos.slurm
-
 # # sync results to remote
 # echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 # rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \

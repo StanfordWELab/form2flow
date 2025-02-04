@@ -1,19 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=create_video
+#SBATCH --job-name=video
+#SBATCH --partition=serc
 #SBATCH --output=create_video_%j.out
 #SBATCH --error=create_video_%j.err
-#SBATCH --time=00:30:00
+#SBATCH --time=00:05:00
 #SBATCH --mem=4G
 
-# Check if both arguments are provided
-if [ $# -ne 2 ]; then
-    echo "Error: Required arguments missing"
-    echo "Usage: $0 <image_base> <dir_path>"
-    exit 1
-fi
-
 image_base="$1"
-dir_path="$2"
 
 # Check if directory exists
 if [ ! -d "${dir_path}" ]; then
@@ -22,7 +15,6 @@ if [ ! -d "${dir_path}" ]; then
 fi
 
 export PATH="/home/groups/gorle/codes/fidelityCharles_2024.1/fidelityCharles_2024.2_CTI/scripts:$PATH"
-cd "${dir_path}"
 
 # Check if IMAGES directory exists and contains matching files
 if [ ! -d "./IMAGES" ]; then
@@ -41,9 +33,9 @@ echo "Creating video for: $image_base"
 # Create temporary config file
 cat > "./fidelity.cnf" << EOF
 infile = ./IMAGES/${image_base}*.png  # wildcard to match all numbered versions
-movie_filename = ./VIDEOS/${image_base}.mp4
-fps = 12
-colormap = rainbow
+movie_filename = ./VIDEOS/${image_base}
+fps = 6
+colormap = viridis
 colormap_iso = seismic
 cbar_orient = vertical
 cbar_width_frac = 0.02
