@@ -64,6 +64,9 @@ if [ -n "$CHANGES" ]; then
     done < /tmp/new_items.txt
 
     while IFS= read -r ITEM; do
+        # Update LOCAL_PATH for each item
+        LOCAL_PATH="$LOCAL_DIR$ITEM"
+        
         # Check if the copied file is responses.txt and process it
         if [[ "$ITEM" == *"responses.txt" ]]; then
             FOLDER_PATH=$(dirname "$LOCAL_PATH")
