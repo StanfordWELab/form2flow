@@ -8,17 +8,9 @@
 
 image_base="$1"
 
-# Check if directory exists
-if [ ! -d "${dir_path}" ]; then
-    echo "Error: Directory ${dir_path} does not exist"
-    exit 1
-fi
-
-export PATH="/home/groups/gorle/codes/fidelityCharles_2024.1/fidelityCharles_2024.2_CTI/scripts:$PATH"
-
 # Check if IMAGES directory exists and contains matching files
 if [ ! -d "./IMAGES" ]; then
-    echo "Error: IMAGES directory not found in ${dir_path}"
+    echo "Error: IMAGES directory not found"
     exit 1
 fi
 
@@ -27,6 +19,8 @@ if [ -z "$(ls ./IMAGES/${image_base}*.png 2>/dev/null)" ]; then
     echo "Error: No matching image files found for pattern: ./IMAGES/${image_base}*.png"
     exit 1
 fi
+
+export PATH="/home/groups/gorle/codes/fidelityCharles_2024.1/fidelityCharles_2024.2_CTI/scripts:$PATH"
 
 echo "Creating video for: $image_base"
 
