@@ -85,6 +85,9 @@ fi
 # Update the previous list file
 mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 
+# Check for video files
+./check_video_files.sh
+
 # sync results to remote
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
