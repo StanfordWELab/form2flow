@@ -1,23 +1,49 @@
-#SBATCH --job-name=images-WW
-#SBATCH --partition=serc
-#SBATCH -N 1
-#SBATCH -n 4
-#SBATCH --time=2:00:00
+#!/bin/bash
+#SBATCH --job-name=create_video
+#SBATCH --output=create_video_%j.out
+#SBATCH --error=create_video_%j.err
+#SBATCH --time=00:30:00
+#SBATCH --mem=4G
 
-# Function to create video for a single image set
-create_video() {
-    local image_base="$1"
-    local dir_path="$2"
-    cd "$dir_path"
-    
-    echo "Creating video for: $image_base"
-    
-    # Create temporary config file
-    cat > "./fidelity.cnf" << EOF
-infile = ./IMAGES/${image_base}*
-movie_filename = ./VIDEOS/${image_base}
-fps = 6
-colormap = viridis
+# Check if both arguments are provided
+if [ $# -ne 2 ]; then
+    echo "Error: Required arguments missing"
+    echo "Usage: $0 <image_base> <dir_path>"
+    exit 1
+fi
+
+image_base="$1"
+dir_path="$2"
+
+# Check if directory exists
+if [ ! -d "${dir_path}" ]; then
+    echo "Error: Directory ${dir_path} does not exist"
+    exit 1
+fi
+
+export PATH="/home/groups/gorle/codes/fidelityCharles_2024.1/fidelityCharles_2024.2_CTI/scripts:$PATH"
+cd "${dir_path}"
+
+# Check if IMAGES directory exists and contains matching files
+if [ ! -d "./IMAGES" ]; then
+    echo "Error: IMAGES directory not found in ${dir_path}"
+    exit 1
+fi
+
+# Check if matching image files exist
+if [ -z "$(ls ./IMAGES/${image_base}*.png 2>/dev/null)" ]; then
+    echo "Error: No matching image files found for pattern: ./IMAGES/${image_base}*.png"
+    exit 1
+fi
+
+echo "Creating video for: $image_base"
+
+# Create temporary config file
+cat > "./fidelity.cnf" << EOF
+infile = ./IMAGES/${image_base}*.png  # wildcard to match all numbered versions
+movie_filename = ./VIDEOS/${image_base}.mp4
+fps = 12
+colormap = rainbow
 colormap_iso = seismic
 cbar_orient = vertical
 cbar_width_frac = 0.02
@@ -25,31 +51,12 @@ cbar_height_frac = 0.45
 fontsize = 14
 EOF
 
-    # Create VIDEOS directory if it doesn't exist
-    mkdir -p "./VIDEOS"
-    
-    pwd
-    # Run lesCreateMovie
-    lesCreateMovie
-    
-    # Clean up config file
-    # rm "./fidelity.cnf"
-}
+# Create VIDEOS directory if it doesn't exist
+mkdir -p "./VIDEOS"
 
-export PATH="/home/groups/gorle/codes/fidelityCharles_2024.1/fidelityCharles_2024.2_CTI/scripts:$PATH"
+pwd
+# Run lesCreateMovie
+lesCreateMovie
 
-module purge
-module load system
-module load libpng/1.2.57
-module load openmpi/4.1.2
-
-# Find all video_images.txt files
-find ./SUBS -type f -name "video_images.txt" | while read -r txt_file; do
-    dir_path=$(dirname "$txt_file")
-    echo "Processing directory: $dir_path"
-    
-    # Read each base image name and create a video
-    while read -r image_base; do
-        create_video "$image_base" "$dir_path"
-    done < "$txt_file"
-done 
+# Clean up config file
+# rm "./fidelity.cnf"
