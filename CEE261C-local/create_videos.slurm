@@ -7,6 +7,8 @@
 #SBATCH -n 10
 
 # Process 10 videos in parallel within each array task
+export PATH="/home/groups/gorle/codes/fidelityCharles_2024.1/fidelityCharles_2024.2_CTI/scripts:$PATH"
+
 for i in {0..9}; do
     # Calculate the actual line number to process
     line_num=$((SLURM_ARRAY_TASK_ID+i+1))
