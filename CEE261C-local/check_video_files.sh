@@ -3,8 +3,8 @@
 # Function to extract base name without numbering
 get_base_name() {
     local filename="$1"
-    # Only remove numbers after dots and the .png extension
-    echo "$filename" | sed -E 's/\.[0-9]+\./\./' | sed 's/\.png$//'
+    # First remove .png extension, then consolidate everything after first period
+    echo "$filename" | sed 's/\.png$//' | sed -E 's/(\.[0-9.]+)+$//'
 }
 
 echo "Starting search in SUBS directory..."
