@@ -64,6 +64,9 @@ if [ -n "$CHANGES" ]; then
     done < /tmp/new_items.txt
 
     while IFS= read -r ITEM; do
+        # Update LOCAL_PATH for each item
+        LOCAL_PATH="$LOCAL_DIR$ITEM"
+        
         # Check if the copied file is responses.txt and process it
         if [[ "$ITEM" == *"responses.txt" ]]; then
             FOLDER_PATH=$(dirname "$LOCAL_PATH")
@@ -85,16 +88,20 @@ fi
 # Update the previous list file
 mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 
+# Check for video files
+./check_video_files.sh
+
 # sync results to remote
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
-    --filter "- *_VID_*" \
+    --filter "- *_VID_*.png*" \
     --filter "+ *.sbin" \
     --filter "+ */surfer.log" \
     --filter "+ */stitch.log" \
     --filter "+ */charles.log" \
     --filter "+ *.png" \
     --filter "+ *slurm-*" \
+    --filter "+ *.mp4" \
     --filter "- *" \
     --skip-links \
     --stats-one-line
