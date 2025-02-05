@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=video
 #SBATCH --partition=serc
-#SBATCH --output=create_video_%j.out
+#SBATCH --output=VIDEOS/create_video_%j.out
 #SBATCH --time=00:05:00
 #SBATCH --mem=4G
 
