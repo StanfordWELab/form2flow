@@ -18,27 +18,27 @@ for i in {0..9}; do
     [ -z "$image_base" ] && continue
     
     # Process this image in the background
-    (
-        echo "Creating video for: $image_base"
-        
-        # Check if matching image files exist
-        if [ -z "$(ls ./IMAGES/${image_base}*.png 2>/dev/null)" ]; then
-            echo "Error: No matching image files found for pattern: ./IMAGES/${image_base}*.png"
-            exit 1
-        fi
-        
-        # Run lesCreateMovie
-        lesCreateMovie \
-          -infile "./IMAGES/${image_base}*.png" \
-          -movie_filename "./VIDEOS/${image_base}" \
-          -fps 6 \
-          -colormap plasma \
-          -colormap_iso seismic \
-          -cbar_orient vertical \
-          -cbar_width_frac 0.02 \
-          -cbar_height_frac 0.45 \
-          -fontsize 14
-    ) &
+    echo "Creating video for: $image_base"
+    
+    # Check if matching image files exist
+    if [ -z "$(ls ./IMAGES/${image_base}*.png 2>/dev/null)" ]; then
+        echo "Error: No matching image files found for pattern: ./IMAGES/${image_base}*.png"
+        exit 1
+    fi
+    
+    # Run lesCreateMovie
+
+    srun --export=ALL -n 1 lesCreateMovie \
+        -infile "./IMAGES/${image_base}*.png" \
+        -movie_filename "./VIDEOS/${image_base}" \
+        -fps 6 \
+        -colormap plasma \
+        -colormap_iso seismic \
+        -cbar_orient vertical \
+        -cbar_width_frac 0.02 \
+        -cbar_height_frac 0.45 \
+        -fontsize 14 \
+        # $((SLURM_ARRAY_TASK_ID+i)) &
 done
 
 # Wait for all background processes to complete

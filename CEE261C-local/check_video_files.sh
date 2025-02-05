@@ -47,8 +47,8 @@ find ./SUBS -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
         
         # Submit array job
         cd "$dir_path"
-        echo "Submitting array job for $num_jobs videos"
-        sbatch --array=0-${array_size} -n ${cores_needed} -t ${minutes_needed}:00 ../../../../create_videos.slurm
+        echo "Submitting array job for $num_jobs videos on $cores_needed cores for $minutes_needed min"
+        sbatch --array=0-${num_jobs}:10 -N 1 -n ${cores_needed} -t ${minutes_needed}:00 ../../../../create_videos.slurm
         cd -
     else
         echo "Warning: No IMAGES folder found in $dir_path"
