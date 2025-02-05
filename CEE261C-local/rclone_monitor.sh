@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 # Define remote and local directories
 ## Define the commented in directories.sh
@@ -101,6 +101,7 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ */charles.log" \
     --filter "+ *.png" \
     --filter "+ *slurm-*" \
+    --filter "+ *.mp4" \
     --filter "- *" \
     --skip-links \
     --stats-one-line
