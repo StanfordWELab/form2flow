@@ -32,13 +32,18 @@ find ./SUBS -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
         
         echo "Created video image list for: $dir_path"
 
-        # Read the video_images.txt file and submit SLURM jobs
-        while read -r image_base; do
-            cd "$dir_path"
-            echo "Submitting job for: $image_base"
-            sbatch ../../../../create_videos.slurm "$image_base"
-            cd -
-        done < "$output_file"
+        # Count number of jobs and calculate array size
+        num_jobs=$(wc -l < "$output_file")
+        array_size=$(( (num_jobs-1)/10 ))  # Integer division to get number of full groups of 10
+        
+        # Create VIDEOS directory if it doesn't exist
+        mkdir -p "${dir_path}/VIDEOS"
+        
+        # Submit array job
+        cd "$dir_path"
+        echo "Submitting array job for $num_jobs videos"
+        sbatch --array=0-${array_size} ../../../../create_videos.slurm
+        cd -
     else
         echo "Warning: No IMAGES folder found in $dir_path"
     fi
@@ -46,7 +51,7 @@ find ./SUBS -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
 done
 
 if [ $? -eq 0 ]; then
-    echo "Search completed and all jobs submitted."
+    echo "Search completed and all array jobs submitted."
 else
     echo "Error during search."
 fi 
