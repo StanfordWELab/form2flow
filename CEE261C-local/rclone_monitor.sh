@@ -94,7 +94,7 @@ mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 # sync results to remote
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
-    --filter "- *_VID_*" \
+    --filter "- *_VID_*.png*" \
     --filter "+ *.sbin" \
     --filter "+ */surfer.log" \
     --filter "+ */stitch.log" \
