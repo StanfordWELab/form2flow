@@ -37,8 +37,7 @@ for i in {0..9}; do
         -cbar_orient vertical \
         -cbar_width_frac 0.02 \
         -cbar_height_frac 0.45 \
-        -fontsize 14 \
-        # $((SLURM_ARRAY_TASK_ID+i)) &
+        -fontsize 14 &
 done
 
 # Wait for all background processes to complete
