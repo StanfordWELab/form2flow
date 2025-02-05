@@ -3,7 +3,7 @@ nohup ./rclone_monitor_runner.sh &
 
 To kill
 * add rclone_monitor.kill in ./runner_outputs
-* ssh to node listed on rclone_monitor.pid and use `kill <PID>`
+* ssh to node listed on rclone_monitor.pid and use `kill -9 <PID>`
 
 NOTE: execute ./rclone_monitor_runner.sh from login (not dev) node
 
