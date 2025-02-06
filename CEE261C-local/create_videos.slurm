@@ -2,15 +2,16 @@
 #SBATCH --job-name=video
 #SBATCH --partition=serc
 #SBATCH --output=VIDEOS/create_video_%A_%a.out
-#SBATCH --mem=4G
+#SBATCH --distribution=block:cyclic # Distribute tasks cyclically across available cores
+#BATCH --cpus-per-task=1
 
 export PATH="/home/groups/gorle/codes/fidelityCharles_2024.1/fidelityCharles_2024.2_CTI/scripts:$PATH"
 
 # Calculate the actual line number to process
-line_num=$((SLURM_ARRAY_TASK_ID * 10 + 1))
+line_num=$((SLURM_ARRAY_TASK_ID * 8 + 1))
 
-# Process up to 10 videos per array task
-for i in {0..9}; do
+# Process up to 8 videos per array task
+for i in {0..7}; do
     # Calculate current line number
     current_line=$((line_num + i))
     
@@ -30,7 +31,7 @@ for i in {0..9}; do
     fi
     
     # Run lesCreateMovie
-    srun --export=ALL -n 1 lesCreateMovie \
+    srun --export=ALL -n 1 --cpus-per-task=1 lesCreateMovie \
         -infile "./IMAGES/${image_base}*.png" \
         -movie_filename "./VIDEOS/${image_base}" \
         -fps 6 \
@@ -39,7 +40,7 @@ for i in {0..9}; do
         -cbar_orient vertical \
         -cbar_width_frac 0.02 \
         -cbar_height_frac 0.45 \
-        -fontsize 14
+        -fontsize 14 &
 done
 
 # Wait for all background processes to complete
