@@ -7,10 +7,12 @@ get_base_name() {
     echo "$filename" | sed 's/\.png$//' | sed -E 's/(\.[0-9.]+)+$//'
 }
 
-echo "Starting search in SUBS directory..."
+DIR="$1"
 
-# Search recursively for createVideo.tmp files in SUBS folder and all subdirectories
-find ./SUBS -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
+echo "Starting search in $DIR directory..."
+
+# Search recursively for createVideo.tmp files in folder and all subdirectories
+find $DIR -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
     echo "Found tmp file: $tmp_file"
     # Get the directory containing the tmp file
     dir_path=$(dirname "$tmp_file")
@@ -56,7 +58,7 @@ find ./SUBS -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
         echo "Warning: No IMAGES folder found in $dir_path"
     fi
     rm "$tmp_file"
-    break # added to slow down videos creation for now
+    # break # added to slow down videos creation for now
 done
 
 if [ $? -eq 0 ]; then
