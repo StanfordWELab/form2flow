@@ -56,6 +56,7 @@ find ./SUBS -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
         echo "Warning: No IMAGES folder found in $dir_path"
     fi
     rm "$tmp_file"
+    break # added to slow down videos creation for now
 done
 
 if [ $? -eq 0 ]; then
