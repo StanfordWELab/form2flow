@@ -7,11 +7,13 @@
 
 export PATH="/home/groups/gorle/codes/fidelityCharles_2024.1/fidelityCharles_2024.2_CTI/scripts:$PATH"
 
+JOBS_PER_ARRAY=100
+
 # Calculate the actual line number to process
-line_num=$((SLURM_ARRAY_TASK_ID * 8 + 1))
+line_num=$((SLURM_ARRAY_TASK_ID * JOBS_PER_ARRAY + 1))
 
 # Process up to 8 videos per array task
-for i in {0..7}; do
+for i in $(seq 0 $((JOBS_PER_ARRAY - 1))); do
     # Calculate current line number
     current_line=$((line_num + i))
     

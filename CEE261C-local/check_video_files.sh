@@ -8,6 +8,7 @@ get_base_name() {
 }
 
 DIR="$1"
+JOBS_PER_ARRAY=100
 
 echo "Starting search in $DIR directory..."
 
@@ -36,23 +37,27 @@ find $DIR -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
 
         # Count number of jobs and calculate array size
         num_jobs=$(wc -l < "$output_file")
-        array_size=$(( (num_jobs-1)/8 ))  # Integer division to get number of full groups of 8
+        array_size=$(( (num_jobs-1)/JOBS_PER_ARRAY ))  # Integer division to get number of full groups of 8
         
         # Calculate cores needed for this batch (max 10 per array task)
-        cores_needed=$(( num_jobs < 8 ? num_jobs : 8 ))
+        cores_needed=$(( num_jobs < JOBS_PER_ARRAY ? num_jobs : JOBS_PER_ARRAY ))
         # cores_needed=$((cores_needed * 4))
-        mem_needed=$((cores_needed * 8))
+        mem_needed=$((cores_needed * JOBS_PER_ARRAY))
         
         # Calculate time needed (5 min per array task)
-        minutes_needed=$(( array_size * 10 + 10 ))  # Add 5 minutes buffer
+        minutes_needed=$((cores_needed * 2))  # This applies to each job in array
         
         # Create VIDEOS directory if it doesn't exist
         mkdir -p "${dir_path}/VIDEOS"
         
         # Submit array job
         cd "$dir_path"
+
+        #only using 4 cores and 32 GB for now because array not working
+        cores_needed=4
+        mem_needed=8
         echo "Submitting array job for $num_jobs videos on $cores_needed cores for $minutes_needed min"
-        sbatch --array=0-${num_jobs}:8 -N 1 -n ${cores_needed} --mem=${mem_needed}GB -t ${minutes_needed}:00 ../../../../create_videos.slurm
+        sbatch --array=0-${num_jobs}:${JOBS_PER_ARRAY} -N 1 -n ${cores_needed} --mem=${mem_needed}GB -t ${minutes_needed}:00 ../../../../create_videos.slurm
         cd -
     else
         echo "Warning: No IMAGES folder found in $dir_path"
