@@ -21,4 +21,4 @@ module load openmpi/4.1.2
 srun /home/groups/gorle/codes/cascade-master-openmpi4/bin/stitch.exe -i stitch_file.in > stitch.log
 srun /home/groups/gorle/codes/cascade-master-openmpi4/src/charles/charles_helm.exe -i charles_file.in > charles.log
 
-touch createVideos.tmp
+touch createVideos2.tmp
