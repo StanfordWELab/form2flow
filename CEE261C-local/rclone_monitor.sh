@@ -89,7 +89,7 @@ fi
 mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 
 # Check for video files
-./check_video_files.sh "./SUBS/*/MT"
+./check_video_files.sh "createVideos2.tmp" "./SUBS"
 
 # sync results to remote
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"

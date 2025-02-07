@@ -7,13 +7,14 @@ get_base_name() {
     echo "$filename" | sed 's/\.png$//' | sed -E 's/(\.[0-9.]+)+$//'
 }
 
-DIR="$1"
+TRIGGER_FILE=$1
+DIR=$2
 JOBS_PER_ARRAY=100
 
 echo "Starting search in $DIR directory..."
 
 # Search recursively for createVideo.tmp files in folder and all subdirectories
-find $DIR -type f -name "createVideos.tmp" -print | while read -r tmp_file; do
+find $DIR -type f -name "$TRIGGER_FILE" -print | while read -r tmp_file; do
     echo "Found tmp file: $tmp_file"
     # Get the directory containing the tmp file
     dir_path=$(dirname "$tmp_file")
