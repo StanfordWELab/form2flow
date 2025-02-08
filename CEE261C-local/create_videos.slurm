@@ -36,7 +36,7 @@ for i in $(seq 0 $((JOBS_PER_ARRAY - 1))); do
     srun --export=ALL -n 1 --cpus-per-task=1 lesCreateMovie \
         -infile "./IMAGES/${image_base}*.png" \
         -movie_filename "./VIDEOS/${image_base}" \
-        -fps 6 \
+        -fps 15 \
         -colormap plasma \
         -colormap_iso seismic \
         -cbar_orient vertical \
