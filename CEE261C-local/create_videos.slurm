@@ -47,3 +47,5 @@ done
 
 # Wait for all background processes to complete
 wait
+
+tar --remove-files -cf IMAGES/video_archive.tar IMAGES/*_VID_*.png

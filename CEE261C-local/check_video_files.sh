@@ -46,7 +46,7 @@ find $DIR -type f -name "$TRIGGER_FILE" -print | while read -r tmp_file; do
         mem_needed=$((cores_needed * JOBS_PER_ARRAY))
         
         # Calculate time needed (5 min per array task)
-        minutes_needed=$((cores_needed * 2))  # This applies to each job in array
+        minutes_needed=$((cores_needed * 15))  # This applies to each job in array
         
         # Create VIDEOS directory if it doesn't exist
         mkdir -p "${dir_path}/VIDEOS"
