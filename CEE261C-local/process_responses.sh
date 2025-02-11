@@ -26,6 +26,9 @@ TERRAIN_CATEGORY=$(grep -i "Terrain inflow category:" "$RESPONSE_FILE" | awk -F'
 SUID=$(grep -i "SUID:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Z_PLANES=$(grep -i "Post-processing z-plane heights:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Y_PLANES=$(grep -i "Post-processing y-plane distances:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+CONSIDER_EMPTY_DOMAIN=$(grep -i "Consider empty domain:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+BUILDING_HEIGHT=$(grep -i "Building height (m):" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+
 
 # Convert Z_PLANES string into an array, trimming spaces from each element
 IFS=',' read -ra Z_PLANES_ARRAY <<< "$Z_PLANES"
@@ -62,13 +65,12 @@ module purge
 module load system
 module load libpng/1.2.57
 module load openmpi/4.1.2
-################################################################### IF EMPTY DOMAIN IS NOT SELECTED, THEN:
-output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
 
-#########ELSEIF
-
-
-
+if [[ "$CONSIDER_EMPTY_DOMAIN" == "No" ]]; then
+    output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
+else
+    output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_EMPTYDOMAIN_SBIN" --BBOX | grep "bounding box dimensions")
+fi
 
 # Extract dx, dy, and dz using awk
 dx=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dx:") print $(i+1)}')
@@ -102,72 +104,91 @@ fi
 echo "Y distance in mesh units: $Y_mesh_int"
 echo "Z distance in mesh units: $Z_mesh_int"
 
-#########################################################IF EMPTY DOMAIN IS NOT SELECTED DO:
+if [[ "$CONSIDER_EMPTY_DOMAIN" == "No" ]]; then
 # Replace placeholders in templates
-CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
-                   -e "s/{NJ}/$Y_mesh_int/" \
-                   -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
-STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
-JOB_TEMPLATE_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
+    CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
+                    -e "s/{NJ}/$Y_mesh_int/" \
+                    -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
+    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
+    JOB_TEMPLATE_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
-# Generate WRITE_IMAGE commands for each z-plane height
-WRITE_IMAGE_COMMANDS=""
-for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
-    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-WRITE_IMAGE NAME= ./IMAGES/TOP_AVG_UMAG_Z_${Z_HEIGHT} INTERVAL=10000 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB"
-done
+    # Generate WRITE_IMAGE commands for each z-plane height
+    WRITE_IMAGE_COMMANDS=""
+    for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/TOP_AVG_UMAG_Z_${Z_HEIGHT} INTERVAL=10000 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB"
+    done
 
-for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
-    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-WRITE_IMAGE NAME= ./IMAGES/TOP_STD_UMAG_Z_${Z_HEIGHT} INTERVAL=10000 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB"
-done
+    for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/TOP_STD_UMAG_Z_${Z_HEIGHT} INTERVAL=10000 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB"
+    done
 
-#for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
-#    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-#WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${Z_HEIGHT} INTERVAL=100 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB"
-#done
+    #for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
+    #    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    #WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${Z_HEIGHT} INTERVAL=100 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB"
+    #done
 
-# Add WRITE_IMAGE command only for the first Z_HEIGHT
-if [ ${#Z_PLANES_ARRAY[@]} -gt 0 ]; then
-    FIRST_Z_HEIGHT=${Z_PLANES_ARRAY[0]}
-    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${FIRST_Z_HEIGHT} INTERVAL=20 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${FIRST_Z_HEIGHT} 0 0 1 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB"
-fi
+    # Add WRITE_IMAGE command only for the first Z_HEIGHT
+    if [ ${#Z_PLANES_ARRAY[@]} -gt 0 ]; then
+        FIRST_Z_HEIGHT=${Z_PLANES_ARRAY[0]}
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${FIRST_Z_HEIGHT} INTERVAL=20 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${FIRST_Z_HEIGHT} 0 0 1 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB"
+    fi
 
-# Generate WRITE_IMAGE commands for each y-plane distance
-for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
-    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-WRITE_IMAGE NAME= ./IMAGES/SIDE_AVG_UMAG_Y_${Y_DISTANCE} INTERVAL=10000 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
-done
+    # Generate WRITE_IMAGE commands for each y-plane distance
+    for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/SIDE_AVG_UMAG_Y_${Y_DISTANCE} INTERVAL=10000 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
+    done
 
-for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
-    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-WRITE_IMAGE NAME= ./IMAGES/SIDE_STD_UMAG_Y_${Y_DISTANCE} INTERVAL=10000 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
-done
+    for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/SIDE_STD_UMAG_Y_${Y_DISTANCE} INTERVAL=10000 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
+    done
 
-#for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
-#    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-#WRITE_IMAGE NAME= ./IMAGES/SIDE_VID_UMAG_Y_${Y_DISTANCE} INTERVAL=100 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
-#done
+    #for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
+    #    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    #WRITE_IMAGE NAME= ./IMAGES/SIDE_VID_UMAG_Y_${Y_DISTANCE} INTERVAL=100 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
+    #done
 
-# Add WRITE_IMAGE command only for the first Y_DISTANCE
-if [ ${#Y_PLANES_ARRAY[@]} -gt 0 ]; then
-    FIRST_Y_DISTANCE=${Y_PLANES_ARRAY[0]}
-    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-WRITE_IMAGE NAME= ./IMAGES/SIDE_VID_UMAG_Y_${FIRST_Y_DISTANCE} INTERVAL=20 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${FIRST_Y_DISTANCE} 0 0 1 0 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
-fi
+    # Add WRITE_IMAGE command only for the first Y_DISTANCE
+    if [ ${#Y_PLANES_ARRAY[@]} -gt 0 ]; then
+        FIRST_Y_DISTANCE=${Y_PLANES_ARRAY[0]}
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/SIDE_VID_UMAG_Y_${FIRST_Y_DISTANCE} INTERVAL=20 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${FIRST_Y_DISTANCE} 0 0 1 0 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
+    fi
 
-# Debugging output: Check what WRITE_IMAGE_COMMANDS looks like
-# DELETE LATER
-echo "WRITE_IMAGE_COMMANDS to be inserted:"
-echo "$WRITE_IMAGE_COMMANDS"
+    # Debugging output: Check what WRITE_IMAGE_COMMANDS looks like
+    # DELETE LATER
+    echo "WRITE_IMAGE_COMMANDS to be inserted:"
+    echo "$WRITE_IMAGE_COMMANDS"
 
-# Escape special characters in WRITE_IMAGE_COMMANDS for use in sed
-ESCAPED_WRITE_IMAGE_COMMANDS=$(echo "$WRITE_IMAGE_COMMANDS" | sed 's/[&\\]/\\&/g')
+    # Escape special characters in WRITE_IMAGE_COMMANDS for use in sed
+    ESCAPED_WRITE_IMAGE_COMMANDS=$(echo "$WRITE_IMAGE_COMMANDS" | sed 's/[&\\]/\\&/g')
 
-# Append the WRITE_IMAGE commands to the end of the CHARLES file
-CHARLES_FILE="$CHARLES_FILE
-$ESCAPED_WRITE_IMAGE_COMMANDS"
+    # Append the WRITE_IMAGE commands to the end of the CHARLES file
+    CHARLES_FILE="$CHARLES_FILE
+    $ESCAPED_WRITE_IMAGE_COMMANDS"
+
+# ELSEIF EMPTY DOMAIN IS SELECTED DO:
+else
+    # Double the building height
+    DOUBLE_BUILDING_HEIGHT=$(echo "$BUILDING_HEIGHT * 2" | bc)
+
+    # Use the empty domain template file and replace placeholders
+    CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
+                        -e "s/{NJ}/$Y_mesh_int/" \
+                        -e "s/{NK}/$Z_mesh_int/" \
+                        -e "s/{BUILDING_HEIGHT}/$DOUBLE_BUILDING_HEIGHT/" "$CHARLES_EMPTYDOMAIN_TEMPLATE_FILE")
+
+
+    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
+
+    JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
+
+
+
 
 # Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
@@ -177,17 +198,6 @@ JOB_TEMPLATE_PATH="$FOLDER_PATH/job_template.sh"
 echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
 echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
 echo "$JOB_TEMPLATE_FILE" > "$JOB_TEMPLATE_PATH"
-
-# ELSEIF EMPTY DOMAIN IS SELECTED DO:
-
-
-
-
-
-
-
-
-
 # Copy the inflow files
 cp -r "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
 

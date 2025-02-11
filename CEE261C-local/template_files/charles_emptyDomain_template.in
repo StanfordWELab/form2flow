@@ -70,8 +70,9 @@ Z1                               = SLIP
 #SPONGE STRENGTH 50 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE 10 0 0 1 0 0 FLIP 
 #A_SGS_SPONGE COEFF 100.0 GEOM PLANE -1 0.0 0.0 1.0 0.0 0.0
 
-# IMAGING
-
+# Probing
+# Lines at 0,0,0
+PROBE NAME=probes/building_loc INTERVAL=1 GEOM=LINE 0 0 0 0 0 {BUILDING_HEIGHT} 100 VARS=rho
 
 
 
