@@ -12,6 +12,11 @@ STITCH_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_template.in"
 JOB_TEMPLATE_FILE="$TEMPLATE_DIR/job_template.sh"
 SURFER_SBIN="./surfer_output.sbin"
 
+# Define the template file paths for emptyDomain files
+CHARLES_EMPTYDOMAIN_TEMPLATE_FILE="$TEMPLATE_DIR/charles_emptyDomain_template.in"
+STITCH_EMPTYDOMAIN_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_emptyDomain_template.in"
+SURFER_EMPTYDOMAIN_SBIN="./surfer_emptyDomain_output.sbin"
+
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
 
@@ -57,7 +62,13 @@ module purge
 module load system
 module load libpng/1.2.57
 module load openmpi/4.1.2
+################################################################### IF EMPTY DOMAIN IS NOT SELECTED, THEN:
 output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
+
+#########ELSEIF
+
+
+
 
 # Extract dx, dy, and dz using awk
 dx=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dx:") print $(i+1)}')
@@ -91,6 +102,7 @@ fi
 echo "Y distance in mesh units: $Y_mesh_int"
 echo "Z distance in mesh units: $Z_mesh_int"
 
+#########################################################IF EMPTY DOMAIN IS NOT SELECTED DO:
 # Replace placeholders in templates
 CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                    -e "s/{NJ}/$Y_mesh_int/" \
@@ -165,6 +177,16 @@ JOB_TEMPLATE_PATH="$FOLDER_PATH/job_template.sh"
 echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
 echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
 echo "$JOB_TEMPLATE_FILE" > "$JOB_TEMPLATE_PATH"
+
+# ELSEIF EMPTY DOMAIN IS SELECTED DO:
+
+
+
+
+
+
+
+
 
 # Copy the inflow files
 cp -r "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
