@@ -180,13 +180,14 @@ else
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                         -e "s/{NJ}/$Y_mesh_int/" \
                         -e "s/{NK}/$Z_mesh_int/" \
-                        -e "s/{BUILDING_HEIGHT}/$DOUBLE_BUILDING_HEIGHT/" "$CHARLES_EMPTYDOMAIN_TEMPLATE_FILE")
+                        -e "s/{BUILDING_HEIGHT}/$BUILDING_HEIGHT/" \
+                        -e "s/{DOUBLE_BUILDING_HEIGHT}/$DOUBLE_BUILDING_HEIGHT/" "$CHARLES_EMPTYDOMAIN_TEMPLATE_FILE")
 
 
     STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
 
     JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
-
+fi
 
 
 
@@ -197,12 +198,12 @@ JOB_TEMPLATE_PATH="$FOLDER_PATH/job_template.sh"
 
 echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
 echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
-echo "$JOB_TEMPLATE_FILE" > "$JOB_TEMPLATE_PATH"
+#echo "$JOB_TEMPLATE_FILE" > "$JOB_TEMPLATE_PATH"
 # Copy the inflow files
 cp -r "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
 
 # Copy the job_template.sh file
-cp "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
+cp "$TEMPLATE_DIR/job_template.sh" "$FOLDER_PATH"
 
 # Print the details of the operation
 echo "Processing new folder: $FOLDER_PATH"

@@ -72,7 +72,8 @@ Z1                               = SLIP
 
 # Probing
 # Lines at 0,0,0
-PROBE NAME=probes/building_loc INTERVAL=1 GEOM=LINE 0 0 0 0 0 {BUILDING_HEIGHT} 100 VARS=rho
+PROBE NAME=probes/building_loc INTERVAL=10000 GEOM=LINE 0 0 0.1 0 0 {DOUBLE_BUILDING_HEIGHT} 20 VARS= avg(mag(u)) comp(rms(u),0)/avg(mag(u)) comp(rms(u),1)/avg(mag(u)) comp(rms(u),2)/avg(mag(u))
+PROBE NAME=probes/building_height_timeseries INTERVAL=1 GEOM=POINT 0 0 {BUILDING_HEIGHT} VARS= mag(u)
 
 
 
