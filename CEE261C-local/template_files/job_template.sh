@@ -23,5 +23,4 @@ srun /home/groups/gorle/codes/cascade-master-openmpi4/src/charles/charles_helm.e
 
 touch createVideos2.tmp
 
-conda activate condaenv
-python3.9 ./post_python.py
+/home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py

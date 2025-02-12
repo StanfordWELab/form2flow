@@ -205,9 +205,6 @@ cp -r "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
 # Copy the job_template.sh file
 cp "$TEMPLATE_DIR/job_template.sh" "$FOLDER_PATH"
 
-# Copy the python code for post processing 
-cp "$TEMPLATE_DIR/post_python.py" "$FOLDER_PATH"
-
 # Print the details of the operation
 echo "Processing new folder: $FOLDER_PATH"
 echo "Input parameters:"
