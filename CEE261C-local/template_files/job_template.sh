@@ -22,3 +22,6 @@ srun /home/groups/gorle/codes/cascade-master-openmpi4/bin/stitch.exe -i stitch_f
 srun /home/groups/gorle/codes/cascade-master-openmpi4/src/charles/charles_helm.exe -i charles_file.in > charles.log
 
 touch createVideos2.tmp
+
+conda activate condaenv
+python3.9 ./post_python.py

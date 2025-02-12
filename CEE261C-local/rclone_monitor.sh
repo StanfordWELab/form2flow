@@ -19,6 +19,22 @@ if [ ! -f "$PREVIOUS_LIST" ]; then
     touch "$PREVIOUS_LIST"
 fi
 
+# sync results to remote
+echo "Copying $REMOTE_RESULTS_DIR to $LOCAL_DIR"
+rclone copy "$REMOTE_RESULTS_DIR" "$LOCAL_DIR" \
+    --filter "+ *.stl" \
+    --filter "+ *responses*.txt" \
+    --filter "+ */surfer.log" \
+    --filter "+ */stitch.log" \
+    --filter "+ */charles.log" \
+    --filter "+ *.png" \
+    --filter "+ *slurm-*" \
+    --filter "+ *.mp4" \
+    --filter "+ *.pdf" \ 
+    --filter "- *" \
+    --skip-links \
+    --stats-one-line
+
 # Fetch the current file list from the remote directory using checksum
 rclone ls --checksum "$REMOTE_SUBS_DIR" | sort > "$CURRENT_LIST"
 
