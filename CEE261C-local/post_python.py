@@ -191,8 +191,8 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     # plt.title('Welch Power Spectral Density vs Theoretical Von Kármán Spectrum', fontsize=24, weight='bold')
 
     # Limit the x and y axes (adjust the limits as needed)
-    plt.xlim(0.001, 2)  # Limit the x-axis (frequency range)
-    plt.ylim(1e-6, 1e1)  # Limit the y-axis (Power Spectral Density range)
+    plt.xlim(0.001, 100)  # Limit the x-axis (frequency range)
+    plt.ylim(1e-4, 1e1)  # Limit the y-axis (Power Spectral Density range)
 
     # Customize tick labels for better readability
     plt.xticks(fontsize=24)
@@ -228,14 +228,14 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
 
 # File paths
 data_files = [
-    "./probes/building_loc.comp(rms(u),0)_d_avg(mag(u))",
-    "./probes/building_loc.comp(rms(u),1)_d_avg(mag(u))",
-    "./probes/building_loc.comp(rms(u),2)_d_avg(mag(u))",
-    "./probes/building_loc.avg(mag(u))"
+    "./probes/building_loc_comp.comp(rms(u),0)_d_comp(avg(u),0)",
+    "./probes/building_loc_comp.comp(rms(u),1)_d_comp(avg(u),0)",
+    "./probes/building_loc_comp.comp(rms(u),2)_d_comp(avg(u),0)",
+    "./probes/building_loc_comp.comp(avg(u),0)"
 ]
 
 coord_file = "./probes/building_loc.README"
-time_series_file = "./probes/building_height_timeseries.mag(u)"
+time_series_file = "./probes/building_height_timeseries.comp(u,0)"
 
 # Read coordinates (Z values)
 z_values = read_probe_coordinates(coord_file)
