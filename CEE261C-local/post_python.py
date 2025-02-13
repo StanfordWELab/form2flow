@@ -175,7 +175,7 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     Euu = f * Euu / sigma2_u
 
     # Von Kármán Spectrum (Su)
-    g = 0.5
+    g = 4 #0.5
     Su = g * f / (1 + 70.8 * (f)**2)**(5/6)
 
     # Plot Welch spectrum and Von Kármán spectrum
