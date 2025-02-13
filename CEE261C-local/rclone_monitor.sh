@@ -6,8 +6,9 @@
 source directories.sh
 REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW/"
 LOCAL_DIR="./SUBS/"
+TMP_DIR="./tmp/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
-CURRENT_LIST="/tmp/current_list.txt"
+CURRENT_LIST="$TMP_DIR/rclone_current_list.txt"
 
 # Ensure the local base directory exists
 if [ ! -d "$LOCAL_DIR" ]; then
@@ -29,9 +30,11 @@ if [ -n "$CHANGES" ]; then
     echo "Changes detected. Copying updated files..."
 
     # Extract the list of new or updated items
-    echo "$CHANGES" | awk '{print $2}' > /tmp/new_items.txt
+    echo "$CHANGES" | awk '{print $2}' > $TMP_DIR/new_items.txt
 
     # Process each new or updated file/folder
+    JOB_COUNT=0
+    MAX_JOBS=10
     while IFS= read -r ITEM; do
         echo "Processing $ITEM..."
         
@@ -60,8 +63,7 @@ if [ -n "$CHANGES" ]; then
                 echo "STL file already named 'building.stl', skipping rename."
             fi
         fi
-        
-    done < /tmp/new_items.txt
+    done < $TMP_DIR/new_items.txt
 
     while IFS= read -r ITEM; do
         # Update LOCAL_PATH for each item
@@ -72,6 +74,7 @@ if [ -n "$CHANGES" ]; then
             FOLDER_PATH=$(dirname "$LOCAL_PATH")
             echo "Running process_responses.sh on $FOLDER_PATH"
             bash ./process_responses.sh "$FOLDER_PATH"
+            JOB_COUNT=$((JOB_COUNT + 1))
         fi
 
         # Check if the copied file is responses_surfer.txt and process it
@@ -79,8 +82,15 @@ if [ -n "$CHANGES" ]; then
             FOLDER_PATH=$(dirname "$LOCAL_PATH")
             echo "Running process_responses_surfer.sh on $FOLDER_PATH"
             bash ./process_responses_surfer.sh "$FOLDER_PATH"
+            JOB_COUNT=$((JOB_COUNT + 1))
         fi
-    done < /tmp/new_items.txt
+
+        if [ "$JOB_COUNT" -gt "$MAX_JOBS" ]; then
+            echo "More than $MAX_JOBS jobs submitted. Exiting."
+            touch ./runner_outputs/rclone_monitor.kill  # Create the kill file
+            exit 1
+        fi
+    done < $TMP_DIR/new_items.txt
 else
     echo "No changes detected."
 fi
@@ -102,6 +112,7 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ *.png" \
     --filter "+ *slurm-*" \
     --filter "+ *.mp4" \
+    --filter "+ *.pdf" \
     --filter "- *" \
     --skip-links \
     --stats-one-line
