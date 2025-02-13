@@ -6,6 +6,7 @@
 source directories.sh
 REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW/"
 LOCAL_DIR="./SUBS/"
+SUBDIR=""
 TMP_DIR="./tmp/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
 CURRENT_LIST="$TMP_DIR/rclone_current_list.txt"
@@ -102,8 +103,8 @@ mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 ./check_video_files.sh "createVideos2.tmp" "./SUBS"
 
 # sync results to remote
-echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
-rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
+echo "Copying $LOCAL_DIR$SUBDIR to $REMOTE_RESULTS_DIR$SUBDIR"
+rclone copy "$LOCAL_DIR$SUBDIR" "$REMOTE_RESULTS_DIR$SUBDIR" \
     --filter "- *_VID_*.png*" \
     --filter "+ *.sbin" \
     --filter "+ */surfer.log" \
@@ -115,4 +116,7 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ *.pdf" \
     --filter "- *" \
     --skip-links \
-    --stats-one-line
+    --stats-one-line \
+    --tpslimit 1000
+    # --drive-pacer-min-sleep 200ms \
+    # --drive-pacer-burst 5

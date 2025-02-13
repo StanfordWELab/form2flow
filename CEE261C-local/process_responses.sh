@@ -110,7 +110,6 @@ if [[ "$CONSIDER_EMPTY_DOMAIN" == "No" ]]; then
                     -e "s/{NJ}/$Y_mesh_int/" \
                     -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
     STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
-    JOB_TEMPLATE_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
     # Generate WRITE_IMAGE commands for each z-plane height
     WRITE_IMAGE_COMMANDS=""
@@ -185,11 +184,9 @@ else
 
 
     STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
-
-    JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 fi
 
-
+JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
 # Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
