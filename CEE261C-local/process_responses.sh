@@ -15,7 +15,6 @@ SURFER_SBIN="./surfer_output.sbin"
 # Define the template file paths for emptyDomain files
 CHARLES_EMPTYDOMAIN_TEMPLATE_FILE="$TEMPLATE_DIR/charles_emptyDomain_template.in"
 STITCH_EMPTYDOMAIN_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_emptyDomain_template.in"
-SURFER_EMPTYDOMAIN_SBIN="./surfer_emptyDomain_output.sbin"
 
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
@@ -66,11 +65,7 @@ module load system
 module load libpng/1.2.57
 module load openmpi/4.1.2
 
-if [[ "$CONSIDER_EMPTY_DOMAIN" == "No" ]]; then
-    output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
-else
-    output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_EMPTYDOMAIN_SBIN" --BBOX | grep "bounding box dimensions")
-fi
+output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
 
 # Extract dx, dy, and dz using awk
 dx=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dx:") print $(i+1)}')
@@ -104,8 +99,21 @@ fi
 echo "Y distance in mesh units: $Y_mesh_int"
 echo "Z distance in mesh units: $Z_mesh_int"
 
-if [[ "$CONSIDER_EMPTY_DOMAIN" == "No" ]]; then
-# Replace placeholders in templates
+if [[ "$CONSIDER_EMPTY_DOMAIN" == "Yes" ]]; then
+    # Double the building height
+    DOUBLE_BUILDING_HEIGHT=$(echo "$BUILDING_HEIGHT * 2" | bc)
+
+    # Use the empty domain template file and replace placeholders
+    CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
+                        -e "s/{NJ}/$Y_mesh_int/" \
+                        -e "s/{NK}/$Z_mesh_int/" \
+                        -e "s/{BUILDING_HEIGHT}/$BUILDING_HEIGHT/" \
+                        -e "s/{DOUBLE_BUILDING_HEIGHT}/$DOUBLE_BUILDING_HEIGHT/" "$CHARLES_EMPTYDOMAIN_TEMPLATE_FILE")
+
+
+    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
+else
+    # Replace placeholders in templates
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                     -e "s/{NJ}/$Y_mesh_int/" \
                     -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
@@ -169,21 +177,6 @@ if [[ "$CONSIDER_EMPTY_DOMAIN" == "No" ]]; then
     # Append the WRITE_IMAGE commands to the end of the CHARLES file
     CHARLES_FILE="$CHARLES_FILE
     $ESCAPED_WRITE_IMAGE_COMMANDS"
-
-# ELSEIF EMPTY DOMAIN IS SELECTED DO:
-else
-    # Double the building height
-    DOUBLE_BUILDING_HEIGHT=$(echo "$BUILDING_HEIGHT * 2" | bc)
-
-    # Use the empty domain template file and replace placeholders
-    CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
-                        -e "s/{NJ}/$Y_mesh_int/" \
-                        -e "s/{NK}/$Z_mesh_int/" \
-                        -e "s/{BUILDING_HEIGHT}/$BUILDING_HEIGHT/" \
-                        -e "s/{DOUBLE_BUILDING_HEIGHT}/$DOUBLE_BUILDING_HEIGHT/" "$CHARLES_EMPTYDOMAIN_TEMPLATE_FILE")
-
-
-    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
 fi
 
 JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
@@ -195,12 +188,9 @@ JOB_TEMPLATE_PATH="$FOLDER_PATH/job_template.sh"
 
 echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
 echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
-#echo "$JOB_TEMPLATE_FILE" > "$JOB_TEMPLATE_PATH"
+echo "$JOB_FILE" > "$JOB_TEMPLATE_PATH"
 # Copy the inflow files
 cp -r "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
-
-# Copy the job_template.sh file
-cp "$TEMPLATE_DIR/job_template.sh" "$FOLDER_PATH"
 
 # Print the details of the operation
 echo "Processing new folder: $FOLDER_PATH"
