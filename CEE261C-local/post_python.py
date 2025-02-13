@@ -167,7 +167,7 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     # Compute Welch Power Spectral Density
     fsamp = 1 / 0.05  # Sampling frequency - Change according to simulation timestep
     N = len(velocity)
-    f, Euu = signal.welch(velocity, fs=fsamp, axis=0, nperseg=N//4, scaling='density', detrend='constant')
+    f, Euu = signal.welch(velocity, fs=fsamp, axis=0, nperseg=N//32, scaling='density', detrend='constant')
 
     # Non-dimensionalize frequency using Von Kármán scaling
     f = f * Lx / np.mean(velocity)
@@ -228,10 +228,10 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
 
 # File paths
 data_files = [
-    "./probes/building_loc_comp.comp(rms(u),0)_d_comp(avg(u),0)",
-    "./probes/building_loc_comp.comp(rms(u),1)_d_comp(avg(u),0)",
-    "./probes/building_loc_comp.comp(rms(u),2)_d_comp(avg(u),0)",
-    "./probes/building_loc_comp.comp(avg(u),0)"
+    "./probes/building_loc.comp(rms(u),0)_d_comp(avg(u),0)",
+    "./probes/building_loc.comp(rms(u),1)_d_comp(avg(u),0)",
+    "./probes/building_loc.comp(rms(u),2)_d_comp(avg(u),0)",
+    "./probes/building_loc.comp(avg(u),0)"
 ]
 
 coord_file = "./probes/building_loc.README"
