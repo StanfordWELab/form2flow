@@ -99,6 +99,8 @@ fi
 echo "Y distance in mesh units: $Y_mesh_int"
 echo "Z distance in mesh units: $Z_mesh_int"
 
+JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
+
 if [[ "$CONSIDER_EMPTY_DOMAIN" == "Yes" ]]; then
     # Double the building height
     DOUBLE_BUILDING_HEIGHT=$(echo "$BUILDING_HEIGHT * 2" | bc)
@@ -112,6 +114,10 @@ if [[ "$CONSIDER_EMPTY_DOMAIN" == "Yes" ]]; then
 
 
     STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
+
+    JOB_FILE="$JOB_FILE
+/home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py"
+
 else
     # Replace placeholders in templates
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
@@ -178,8 +184,6 @@ else
     CHARLES_FILE="$CHARLES_FILE
     $ESCAPED_WRITE_IMAGE_COMMANDS"
 fi
-
-JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
 # Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
