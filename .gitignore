@@ -12,3 +12,4 @@ rclone_previous_list.txt
 ss/*
 *_journal
 *directories.sh
+*/tmp/*
