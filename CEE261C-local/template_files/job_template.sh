@@ -22,5 +22,3 @@ srun /home/groups/gorle/codes/cascade-master-openmpi4/bin/stitch.exe -i stitch_f
 srun /home/groups/gorle/codes/cascade-master-openmpi4/src/charles/charles_helm.exe -i charles_file.in > charles.log
 
 touch createVideos2.tmp
-
-/home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py

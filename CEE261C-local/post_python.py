@@ -167,7 +167,7 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     # Compute Welch Power Spectral Density
     fsamp = 1 / 0.05  # Sampling frequency - Change according to simulation timestep
     N = len(velocity)
-    f, Euu = signal.welch(velocity, fs=fsamp, axis=0, nperseg=N//4, scaling='density', detrend='constant')
+    f, Euu = signal.welch(velocity, fs=fsamp, axis=0, nperseg=N//32, scaling='density', detrend='constant')
 
     # Non-dimensionalize frequency using Von Kármán scaling
     f = f * Lx / np.mean(velocity)
@@ -175,7 +175,7 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     Euu = f * Euu / sigma2_u
 
     # Von Kármán Spectrum (Su)
-    g = 0.5
+    g = 4 #0.5
     Su = g * f / (1 + 70.8 * (f)**2)**(5/6)
 
     # Plot Welch spectrum and Von Kármán spectrum
@@ -191,8 +191,8 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     # plt.title('Welch Power Spectral Density vs Theoretical Von Kármán Spectrum', fontsize=24, weight='bold')
 
     # Limit the x and y axes (adjust the limits as needed)
-    plt.xlim(0.001, 2)  # Limit the x-axis (frequency range)
-    plt.ylim(1e-6, 1e1)  # Limit the y-axis (Power Spectral Density range)
+    plt.xlim(0.001, 100)  # Limit the x-axis (frequency range)
+    plt.ylim(1e-4, 1e1)  # Limit the y-axis (Power Spectral Density range)
 
     # Customize tick labels for better readability
     plt.xticks(fontsize=24)
@@ -228,14 +228,14 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
 
 # File paths
 data_files = [
-    "./probes/building_loc.comp(rms(u),0)_d_avg(mag(u))",
-    "./probes/building_loc.comp(rms(u),1)_d_avg(mag(u))",
-    "./probes/building_loc.comp(rms(u),2)_d_avg(mag(u))",
-    "./probes/building_loc.avg(mag(u))"
+    "./probes/building_loc.comp(rms(u),0)_d_comp(avg(u),0)",
+    "./probes/building_loc.comp(rms(u),1)_d_comp(avg(u),0)",
+    "./probes/building_loc.comp(rms(u),2)_d_comp(avg(u),0)",
+    "./probes/building_loc.comp(avg(u),0)"
 ]
 
 coord_file = "./probes/building_loc.README"
-time_series_file = "./probes/building_height_timeseries.mag(u)"
+time_series_file = "./probes/building_height_timeseries.comp(u,0)"
 
 # Read coordinates (Z values)
 z_values = read_probe_coordinates(coord_file)

@@ -105,14 +105,19 @@ mv -f "$CURRENT_LIST" "$PREVIOUS_LIST"
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "- *_VID_*.png*" \
-    --filter "+ *.sbin" \
+    --filter "+ */*.sbin" \
     --filter "+ */surfer.log" \
     --filter "+ */stitch.log" \
     --filter "+ */charles.log" \
-    --filter "+ *.png" \
-    --filter "+ *slurm-*" \
-    --filter "+ *.mp4" \
-    --filter "+ *.pdf" \
+    --filter "+ */*.png" \
+    --filter "+ */slurm-*" \
+    --filter "+ */*.mp4" \
+    --filter "+ */*.pdf" \
     --filter "- *" \
     --skip-links \
-    --stats-one-line
+    --stats-one-line \
+    --tpslimit 500 \
+    --drive-pacer-min-sleep 200ms \
+    --drive-pacer-burst 5 \
+    --log-level ERROR \
+    --fast-list
