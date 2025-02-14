@@ -50,5 +50,5 @@ while true; do
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Executing rclone_monitor.sh" >> "$LOG_FILE"
     bash "$RCLONE_MONITOR_SCRIPT" >> "$LOG_FILE" 2>&1
-    sleep 5  # Wait for 5 seconds
+    sleep 60  # Wait for 60 seconds
 done
