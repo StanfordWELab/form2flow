@@ -58,7 +58,7 @@ case "$GRID_RESOLUTION" in
     "Coarser"*) MESH_SIZE="15" ;;
     "Coarse"*) MESH_SIZE="10" ;;
     "Base"*) MESH_SIZE="5" ;;
-    "Fine"*) MESH_SIZE="2" ;;
+    "Fine"*) MESH_SIZE="4" ;;
     *) echo "Invalid grid resolution: $GRID_RESOLUTION"; exit 1 ;;
 esac
 
