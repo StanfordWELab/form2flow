@@ -50,6 +50,8 @@ SURFER_FILE=$(sed -e "s/{WIND_DIRECTION}/$WIND_DIRECTION/" \
 SURFER_FILE_PATH="$FOLDER_PATH/surfer_file.in"
 echo "$SURFER_FILE" > "$SURFER_FILE_PATH"
 
+cp "$TEMPLATE_DIR/SiteModelClean_v3.sbin" "$FOLDER_PATH"
+
 # Print the details of the operation
 echo "Processing new folder: $FOLDER_PATH"
 echo "Input parameters:"

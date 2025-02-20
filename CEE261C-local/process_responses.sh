@@ -16,18 +16,21 @@ SURFER_SBIN="./surfer_output.sbin"
 CHARLES_EMPTYDOMAIN_TEMPLATE_FILE="$TEMPLATE_DIR/charles_emptyDomain_template.in"
 STITCH_EMPTYDOMAIN_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_emptyDomain_template.in"
 
+# Define the template file paths for urban case files
+CHARLES_URBAN_TEMPLATE_FILE="$TEMPLATE_DIR/charles_urbanEnv_template.in"
+STITCH_URBAN_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_urbanEnv_template.in"
+
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
 
 # Extract input parameters from responses.txt
-MESH_REFINEMENT=$(grep -i "Mesh refinement:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-TERRAIN_CATEGORY=$(grep -i "Terrain inflow category:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 SUID=$(grep -i "SUID:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+SIMULATION_TYPE=$(grep -i "Simulation Type:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+TARGET_BUILDING_HEIGHT=$(grep -i "Target Building Height (m):" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+GRID_RESOLUTION=$(grep -i "Grid Resolution:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+TERRAIN_CATEGORY=$(grep -i "Terrain Category:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Z_PLANES=$(grep -i "Post-processing z-plane heights:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Y_PLANES=$(grep -i "Post-processing y-plane distances:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-CONSIDER_EMPTY_DOMAIN=$(grep -i "Consider empty domain:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-BUILDING_HEIGHT=$(grep -i "Building height (m):" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-
 
 # Convert Z_PLANES string into an array, trimming spaces from each element
 IFS=',' read -ra Z_PLANES_ARRAY <<< "$Z_PLANES"
@@ -43,23 +46,23 @@ done
 
 # Process the terrain category
 case "$TERRAIN_CATEGORY" in
-    "Category 1") TERRAIN_VALUE="0.01" ;;
-    "Category 2") TERRAIN_VALUE="0.05" ;;
-    "Category 3") TERRAIN_VALUE="0.3" ;;
-    "Category 4") TERRAIN_VALUE="1.0" ;;
+    "Category 1"*) TERRAIN_VALUE="0.01" ;;
+    "Category 2"*) TERRAIN_VALUE="0.05" ;;
+    "Category 3"*) TERRAIN_VALUE="0.3" ;;
+    "Category 4"*) TERRAIN_VALUE="1.0" ;;
     *) echo "Invalid terrain category: $TERRAIN_CATEGORY"; exit 1 ;;
 esac
 
-# Process the mesh refinement
-case "$MESH_REFINEMENT" in
-    "Coarse") MESH_SIZE="15" ;;
-    "Fine") MESH_SIZE="10" ;;
-    "Finer") MESH_SIZE="5" ;;
-    *) echo "Invalid mesh refinement: $MESH_REFINEMENT"; exit 1 ;;
+# Process the grid resolution
+case "$GRID_RESOLUTION" in
+    "Coarser"*) MESH_SIZE="15" ;;
+    "Coarse"*) MESH_SIZE="10" ;;
+    "Base"*) MESH_SIZE="5" ;;
+    "Fine"*) MESH_SIZE="2" ;;
+    *) echo "Invalid grid resolution: $GRID_RESOLUTION"; exit 1 ;;
 esac
 
-# Get Domain Size
-# Run the command and capture output
+# Extract domain size from surfer output
 module purge
 module load system
 module load libpng/1.2.57
@@ -86,14 +89,8 @@ Z_mesh_int=$(printf "%.0f" "$Z_mesh")
 MIN_DY=3
 MIN_DZ=3
 
-# Ensure dx and dz are not less than the minimum values
-if (( $(echo "$Y_mesh_int < $MIN_DY" | bc -l) )); then
-    Y_mesh_int=$MIN_DY
-fi
-
-if (( $(echo "$Z_mesh_int < $MIN_DZ" | bc -l) )); then
-    Z_mesh_int=$MIN_DZ
-fi
+if (( $(echo "$Y_mesh_int < $MIN_DY" | bc -l) )); then Y_mesh_int=$MIN_DY; fi
+if (( $(echo "$Z_mesh_int < $MIN_DZ" | bc -l) )); then Z_mesh_int=$MIN_DZ; fi
 
 # Print results
 echo "Y distance in mesh units: $Y_mesh_int"
@@ -101,29 +98,24 @@ echo "Z distance in mesh units: $Z_mesh_int"
 
 JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
-if [[ "$CONSIDER_EMPTY_DOMAIN" == "Yes" ]]; then
-    # Double the building height
-    DOUBLE_BUILDING_HEIGHT=$(echo "$BUILDING_HEIGHT * 2" | bc)
-
-    # Use the empty domain template file and replace placeholders
+# Template selection based on Simulation Type
+if [[ "$SIMULATION_TYPE" == "Empty domain" ]]; then
+    DOUBLE_BUILDING_HEIGHT=$(echo "$TARGET_BUILDING_HEIGHT * 2" | bc)
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                         -e "s/{NJ}/$Y_mesh_int/" \
                         -e "s/{NK}/$Z_mesh_int/" \
-                        -e "s/{BUILDING_HEIGHT}/$BUILDING_HEIGHT/" \
+                        -e "s/{BUILDING_HEIGHT}/$TARGET_BUILDING_HEIGHT/" \
                         -e "s/{DOUBLE_BUILDING_HEIGHT}/$DOUBLE_BUILDING_HEIGHT/" "$CHARLES_EMPTYDOMAIN_TEMPLATE_FILE")
-
-
     STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
-
+    
     JOB_FILE="$JOB_FILE
 /home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py"
 
-else
-    # Replace placeholders in templates
+elif [[ "$SIMULATION_TYPE" == "Building in an urban environment" ]]; then
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                     -e "s/{NJ}/$Y_mesh_int/" \
-                    -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
-    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
+                    -e "s/{NK}/$Z_mesh_int/" "$CHARLES_URBAN_TEMPLATE_FILE")
+    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_URBAN_TEMPLATE_FILE")
 
     # Generate WRITE_IMAGE commands for each z-plane height
     WRITE_IMAGE_COMMANDS=""
@@ -136,11 +128,6 @@ else
         WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
     WRITE_IMAGE NAME= ./IMAGES/TOP_STD_UMAG_Z_${Z_HEIGHT} INTERVAL=10000 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB"
     done
-
-    #for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
-    #    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-    #WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${Z_HEIGHT} INTERVAL=100 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB"
-    #done
 
     # Add WRITE_IMAGE command only for the first Z_HEIGHT
     if [ ${#Z_PLANES_ARRAY[@]} -gt 0 ]; then
@@ -160,10 +147,60 @@ else
     WRITE_IMAGE NAME= ./IMAGES/SIDE_STD_UMAG_Y_${Y_DISTANCE} INTERVAL=10000 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
     done
 
-    #for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
-    #    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-    #WRITE_IMAGE NAME= ./IMAGES/SIDE_VID_UMAG_Y_${Y_DISTANCE} INTERVAL=100 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
-    #done
+    # Add WRITE_IMAGE command only for the first Y_DISTANCE
+    if [ ${#Y_PLANES_ARRAY[@]} -gt 0 ]; then
+        FIRST_Y_DISTANCE=${Y_PLANES_ARRAY[0]}
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/SIDE_VID_UMAG_Y_${FIRST_Y_DISTANCE} INTERVAL=20 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${FIRST_Y_DISTANCE} 0 0 1 0 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
+    fi
+
+    # Debugging output: Check what WRITE_IMAGE_COMMANDS looks like
+    # DELETE LATER
+    echo "WRITE_IMAGE_COMMANDS to be inserted:"
+    echo "$WRITE_IMAGE_COMMANDS"
+
+    # Escape special characters in WRITE_IMAGE_COMMANDS for use in sed
+    ESCAPED_WRITE_IMAGE_COMMANDS=$(echo "$WRITE_IMAGE_COMMANDS" | sed 's/[&\\]/\\&/g')
+
+    # Append the WRITE_IMAGE commands to the end of the CHARLES file
+    CHARLES_FILE="$CHARLES_FILE
+    $ESCAPED_WRITE_IMAGE_COMMANDS"
+    
+else
+    CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
+                    -e "s/{NJ}/$Y_mesh_int/" \
+                    -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
+    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
+
+    # Generate WRITE_IMAGE commands for each z-plane height
+    WRITE_IMAGE_COMMANDS=""
+    for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/TOP_AVG_UMAG_Z_${Z_HEIGHT} INTERVAL=10000 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB"
+    done
+
+    for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/TOP_STD_UMAG_Z_${Z_HEIGHT} INTERVAL=10000 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB"
+    done
+
+    # Add WRITE_IMAGE command only for the first Z_HEIGHT
+    if [ ${#Z_PLANES_ARRAY[@]} -gt 0 ]; then
+        FIRST_Z_HEIGHT=${Z_PLANES_ARRAY[0]}
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${FIRST_Z_HEIGHT} INTERVAL=20 TARGET 0 0 250 CAMERA 0 0 800 UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${FIRST_Z_HEIGHT} 0 0 1 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB"
+    fi
+
+    # Generate WRITE_IMAGE commands for each y-plane distance
+    for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/SIDE_AVG_UMAG_Y_${Y_DISTANCE} INTERVAL=10000 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
+    done
+
+    for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
+        WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+    WRITE_IMAGE NAME= ./IMAGES/SIDE_STD_UMAG_Y_${Y_DISTANCE} INTERVAL=10000 TARGET 0 0 50 CAMERA 0 -559 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
+    done
 
     # Add WRITE_IMAGE command only for the first Y_DISTANCE
     if [ ${#Y_PLANES_ARRAY[@]} -gt 0 ]; then
@@ -184,6 +221,8 @@ else
     CHARLES_FILE="$CHARLES_FILE
     $ESCAPED_WRITE_IMAGE_COMMANDS"
 fi
+
+JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
 # Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
