@@ -55,7 +55,7 @@ esac
 
 # Process the grid resolution
 case "$GRID_RESOLUTION" in
-    "Coarser"*) MESH_SIZE="10" ;;
+    "Coarser"*) MESH_SIZE="12" ;;
     "Coarse"*) MESH_SIZE="8" ;;
     "Base"*) MESH_SIZE="6" ;;
     "Fine"*) MESH_SIZE="5" ;;
