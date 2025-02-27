@@ -85,6 +85,7 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ */surfer.log" \
     --filter "+ */stitch.log" \
     --filter "+ */charles.log" \
+    --filter "+ */responses.txt" \
     --filter "+ */*.png" \
     --filter "+ */slurm-*" \
     --filter "+ */*.mp4" \
