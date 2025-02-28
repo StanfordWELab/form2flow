@@ -38,7 +38,7 @@ function onFormSubmit(e) {
 
   // Create the student's folder inside SUBS
   var userFolder = getOrCreateFolder(subsFolder, userEmail);
-  var assignmentFolder = getOrCreateFolder(userFolder, 'HW5');
+  var assignmentFolder = getOrCreateFolder(userFolder, 'Final');
   var subNo = getNextSubmissionNumber(assignmentFolder);
   var subFolderName = 'submission-' + ('0' + subNo).slice(-2);
   var subFolder = assignmentFolder.createFolder(subFolderName);
