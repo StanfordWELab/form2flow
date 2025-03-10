@@ -13,6 +13,19 @@ u_star = 1.08  # Friction velocity
 kappa = 0.41   # von Kármán constant
 z0 = 0.27      # Roughness length
 
+inflow_file = './inflow_files/test_WOW_x2.5_mod.dat'
+
+# Function to read inflow file
+def read_inflow_file(file):
+    data = np.loadtxt(file, skiprows=1)
+    z = data[:, 2]
+    x_velocity = data[:, 3]
+    uu_reynolds_stress = data[:, 6] / x_velocity
+    vv_reynolds_stress = data[:, 8] / x_velocity
+    ww_reynolds_stress = data[:, 7] / x_velocity
+    return z, x_velocity, uu_reynolds_stress, vv_reynolds_stress, ww_reynolds_stress
+
+
 def read_probe_data(data_file):
     """Read the probe data file and extract the last saved timestep."""
     with open(data_file, 'r') as f:
@@ -108,13 +121,18 @@ def plot_subplots(z_values, data_files, x_labels, filename=None):
     I_u, I_v, I_w, U_mag = compute_theoretical_values(z_values)
     theoretical_values = [I_u, I_v, I_w, U_mag]
 
-    for i, (data_file, x_label, theory) in enumerate(zip(data_files, x_labels, theoretical_values)):
+    # Inflow profile plot
+    z_inlet, x_velocity, uu, vv, ww = read_inflow_file(inflow_file)
+    inlet_values = [uu, vv, ww, x_velocity]
+
+    for i, (data_file, x_label, theory, inlet) in enumerate(zip(data_files, x_labels, theoretical_values, inlet_values)):
         last_timestep = read_probe_data(data_file)  # Read the simulation data
         ax = axes[i]
 
         # Plot
         ax.plot(last_timestep, z_values, 'o-', label="Simulation Data", color='tab:blue', markersize=6, linewidth=2)
-        ax.plot(theory, z_values, 'r--', label="Theoretical", linewidth=2)  # Theoretical values
+        #ax.plot(theory, z_values, 'r--', label="Theoretical", linewidth=2)  # Theoretical values
+        ax.plot(inlet, z_inlet, 'r--', label="Inlet", linewidth=2)  # Theoretical values
 
         ax.set_xlabel(x_label, fontsize=16)
         ax.set_ylabel('Height (Z)', fontsize=16)
@@ -127,6 +145,22 @@ def plot_subplots(z_values, data_files, x_labels, filename=None):
         
         ax.tick_params(axis='both', which='major', labelsize=14)
         ax.tick_params(axis='both', which='minor', labelsize=12)
+
+        ax.set_ylim(0, 40)
+
+
+
+
+#    # Inflow profile plot
+#    z, x_velocity, uu, vv, ww = read_inflow_file(inflow_file)
+#    ax = axes[4]
+#    ax.plot(x_velocity, z, label='Inlet Velocity')
+#    ax.plot(uu, z, label='Inlet I_u')
+#    ax.plot(vv, z, label='Inlet I_v')
+#    ax.plot(ww, z, label='Inlet I_u')
+#    ax.set_xlabel('Velocity / Reynolds Stress')
+#    ax.set_ylabel('Height (Z)')
+#    ax.legend()
 
     plt.tight_layout(pad=3.0)  # Increase space between subplots
 
@@ -148,7 +182,7 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     # Title page
     title = Paragraph("ABL (empty domain) simulation report", styles['Title'])
     content.append(title)
-    content.append(Paragraph("<br/>This report compares simulation data with theoretical profiles for turbulence intensity "
+    content.append(Paragraph("<br/>This report compares simulation data with inlet profiles for turbulence intensity "
                              "(I_u, I_v, I_w), mean velocity profile (U_mag), and power spectra density.", styles['Normal']))
     content.append(Paragraph("<br/><b>Theoretical Profile (log-law)</b><br/><i>U(z) = (u^* / kappa) * log((z + z_0) / z_0)</i>", styles['Normal']))
     content.append(Paragraph("<br/><b>Turbulence Intensity:</b><br/>I_u = 1 / log((z + z_0) / z_0)<br/>I_v = 0.88 * I_u<br/>I_w = 0.55 * I_u", styles['Normal']))
@@ -211,7 +245,7 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     plot_subplots(z_values, data_files, x_labels, filename="subplots.png")
 
     # Add plot image to PDF
-    content.append(Paragraph("<br/><br/><b>Comparison of Simulation and Theoretical Profiles</b>", styles['Normal']))
+    content.append(Paragraph("<br/><br/><b>Comparison of Simulation and Inlet Profiles</b>", styles['Normal']))
     content.append(Image("subplots.png", width=540, height=180))
 
     # Add page break before adding the plot image to PDF
