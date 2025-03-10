@@ -9,11 +9,11 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, PageBreak
 
 # Constants for theoretical calculations - these to change depending on user data/terrain category
-u_star = 1.08  # Friction velocity
+#u_star = 1.08  # Friction velocity
 kappa = 0.41   # von Kármán constant
-z0 = 0.27      # Roughness length
+#z0 = 0.27      # Roughness length
 
-inflow_file = './inflow_files/test_WOW_x2.5_mod.dat'
+inflow_file = './template_files/inflow_files/test_WOW_x2.5_mod.dat'
 
 # Function to read inflow file
 def read_inflow_file(file):
@@ -23,7 +23,13 @@ def read_inflow_file(file):
     uu_reynolds_stress = data[:, 6] / x_velocity
     vv_reynolds_stress = data[:, 8] / x_velocity
     ww_reynolds_stress = data[:, 7] / x_velocity
-    return z, x_velocity, uu_reynolds_stress, vv_reynolds_stress, ww_reynolds_stress
+
+    Fmean = np.polyfit(np.log(z) ,x_velocity,1)
+    ustar = Fmean[0]*kappa
+    z0 = np.exp(-Fmean[1]/Fmean[0])
+
+
+    return z, x_velocity, uu_reynolds_stress, vv_reynolds_stress, ww_reynolds_stress, ustar, z0
 
 
 def read_probe_data(data_file):
@@ -98,7 +104,7 @@ def LengthScale(uInst, meanU, time, show_plot=False):
 
     return Lx
 
-def compute_theoretical_values(z_values):
+def compute_theoretical_values(z_values, u_star, z0):
     """Compute theoretical proviles for turbulence intensity and velocity profile."""
     log_term = np.log((z_values + z0) / z0)
     
@@ -117,13 +123,16 @@ def plot_subplots(z_values, data_files, x_labels, filename=None):
     
     fig, axes = plt.subplots(1, 4, figsize=(22, 7))  # Adjust figure size for larger text and better spacing
 
-    # Compute theoretical values
-    I_u, I_v, I_w, U_mag = compute_theoretical_values(z_values)
-    theoretical_values = [I_u, I_v, I_w, U_mag]
 
     # Inflow profile plot
-    z_inlet, x_velocity, uu, vv, ww = read_inflow_file(inflow_file)
+    z_inlet, x_velocity, uu, vv, ww, ustar, z0 = read_inflow_file(inflow_file)
     inlet_values = [uu, vv, ww, x_velocity]
+
+
+    # Compute theoretical values
+    I_u, I_v, I_w, U_mag = compute_theoretical_values(z_values, ustar, z0)
+    theoretical_values = [I_u, I_v, I_w, U_mag]
+
 
     for i, (data_file, x_label, theory, inlet) in enumerate(zip(data_files, x_labels, theoretical_values, inlet_values)):
         last_timestep = read_probe_data(data_file)  # Read the simulation data
@@ -131,8 +140,8 @@ def plot_subplots(z_values, data_files, x_labels, filename=None):
 
         # Plot
         ax.plot(last_timestep, z_values, 'o-', label="Simulation Data", color='tab:blue', markersize=6, linewidth=2)
-        #ax.plot(theory, z_values, 'r--', label="Theoretical", linewidth=2)  # Theoretical values
-        ax.plot(inlet, z_inlet, 'r--', label="Inlet", linewidth=2)  # Theoretical values
+        ax.plot(theory, z_values, 'r--', label="Theoretical", linewidth=2)  # Theoretical values
+        ax.plot(inlet, z_inlet, 'b--', label="Inlet", linewidth=2)  # Theoretical values
 
         ax.set_xlabel(x_label, fontsize=16)
         ax.set_ylabel('Height (Z)', fontsize=16)
@@ -172,6 +181,8 @@ def plot_subplots(z_values, data_files, x_labels, filename=None):
 
 def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, time_series_file):
     """Generate a PDF report including text, equations, and plots using ReportLab."""
+
+    _, _, _, _, _, u_star, z0 = read_inflow_file(inflow_file)
     # Create a PDF document
     doc = SimpleDocTemplate(pdf_filename, pagesize=letter)
     
@@ -189,7 +200,7 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
     
     # Page Break
     content.append(Paragraph("<br/><br/><b>Parameters used in calculations:</b>", styles['Normal']))
-    content.append(Paragraph(f"Friction velocity (u*): {u_star}<br/>von Kármán constant (κ): {kappa}<br/>Roughness length (z_0): {z0}", styles['Normal']))
+    content.append(Paragraph(f"Friction velocity (u*): {round(u_star, 2)}<br/>von Kármán constant (κ): {kappa}<br/>Roughness length (z_0): {round(z0, 2)}", styles['Normal']))
     
     # Read velocity time series
     time, velocity = read_velocity_time_series(time_series_file)
