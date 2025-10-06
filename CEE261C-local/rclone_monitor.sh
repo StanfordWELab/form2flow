@@ -26,6 +26,21 @@ rclone copy "$REMOTE_SUBS_DIR" "$LOCAL_DIR" \
     --filter "+ */*.sbin" \
     --filter "+ */*.stl" \
     --filter "+ */responses*.txt" \
+    --filter "+ */kill*" \
+    --filter "- *" \
+    --skip-links \
+    --stats-one-line \
+    --tpslimit 500 \
+    --drive-pacer-min-sleep 200ms \
+    --drive-pacer-burst 5 \
+    --verbose \
+    --ignore-existing \
+    --fast-list
+
+# sync results to remote
+echo "Copying killfiles from $REMOTE_RESULTS_DIR to $LOCAL_DIR"
+rclone copy "$REMOTE_RESULTS_DIR" "$LOCAL_DIR" \
+    --filter "+ */kill*" \
     --filter "- *" \
     --skip-links \
     --stats-one-line \
