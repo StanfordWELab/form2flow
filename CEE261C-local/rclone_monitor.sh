@@ -4,7 +4,7 @@
 ## Define the commented in directories.sh
 # REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
 source directories.sh
-REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/HW/"
+REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025F/HW/"
 LOCAL_DIR="./SUBS/"
 TMP_DIR="./tmp/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"

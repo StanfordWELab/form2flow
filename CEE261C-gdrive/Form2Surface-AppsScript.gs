@@ -1,5 +1,5 @@
 function onFormSubmit(e) {
-  var parentFolderName = "CEE261C-2025";
+  var parentFolderName = "CEE261C-2025F";
   var parentFolders = DriveApp.getFoldersByName(parentFolderName);
 
   if (!parentFolders.hasNext()) return;
@@ -46,7 +46,7 @@ function onFormSubmit(e) {
 
   // Create the student's folder inside SUBS
   var userFolder = getOrCreateFolder(subsFolder, userEmail);
-  var assignmentFolder = getOrCreateFolder(userFolder, 'Final');
+  var assignmentFolder = getOrCreateFolder(userFolder, 'HW3');
   var subNo = getNextSubmissionNumber(assignmentFolder);
   var subFolderName = 'submission_surfer-' + ('0' + subNo).slice(-2);
   var subFolder = assignmentFolder.createFolder(subFolderName);

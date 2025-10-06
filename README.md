@@ -31,3 +31,5 @@ To check if it is running:
 
 To kill:
 `kill <ID>`
+or create killfile:
+`./runner_outputs/rclone_monitor.kill`
