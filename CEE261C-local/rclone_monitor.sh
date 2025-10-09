@@ -27,6 +27,7 @@ rclone copy "$REMOTE_SUBS_DIR" "$LOCAL_DIR" \
     --filter "+ */*.stl" \
     --filter "+ */responses*.txt" \
     --filter "+ */kill*" \
+    --filter "+ */*.json" \
     --filter "- *" \
     --skip-links \
     --stats-one-line \
@@ -105,6 +106,7 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ */slurm-*" \
     --filter "+ */*.mp4" \
     --filter "+ */*.pdf" \
+    --filter "+ */*.html" \
     --filter "- *" \
     --skip-links \
     --stats-one-line \
