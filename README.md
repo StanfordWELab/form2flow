@@ -33,3 +33,6 @@ To kill:
 `kill <ID>`
 or create killfile:
 `./runner_outputs/rclone_monitor.kill`
+
+### Killing running jobs
+The script will copy killfiles from the output folder into the simulation directories. For example, students can kill a charles job by putting a file named `killcharles` (no extension) into the folder with simulation outputs.
