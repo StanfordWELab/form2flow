@@ -7,7 +7,7 @@ rclone_previous_list.txt
 *.stl
 *.pid
 *.kill
-*/SUBS/*
+*/SUBS*/*
 .vscode/*
 ss/*
 *_journal

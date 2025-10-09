@@ -1,4 +1,6 @@
 #!/bin/bash
+source /home/groups/gorle/codes/miniconda3/etc/profile.d/conda.sh
+conda activate form2flow
 
 # Base directory where files are located
 FOLDER_PATH="$1"
@@ -22,6 +24,8 @@ STITCH_URBAN_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_urbanEnv_template.in"
 
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
+
+airflow-generate --input "$FOLDER_PATH/plane_definitions.json" --output-dir "$FOLDER_PATH/probes"
 
 # Extract input parameters from responses.txt
 SUID=$(grep -i "SUID:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
@@ -233,6 +237,18 @@ else
     CHARLES_FILE="$CHARLES_FILE
     $ESCAPED_WRITE_IMAGE_COMMANDS"
 fi
+
+# --- Append POINTCLOUD_PROBE commands for each ./probes/*.txt ---
+if compgen -G "$FOLDER_PATH/probes/*.txt" > /dev/null; then
+  for txt in "$FOLDER_PATH"/probes/*.txt; do
+    fname=$(basename "$txt" .txt)
+    CHARLES_FILE="$CHARLES_FILE
+POINTCLOUD_PROBE NAME=probes_results/${fname} INTERVAL=30000 PRECISION=FLOAT FORMAT=BINARY GEOM=FILE probes/${fname}.txt VARS = avg(mag(u)) avg(p) comp(avg(u),0) comp(avg(u),1) comp(avg(u),2) comp(rms(u),0) comp(rms(u),1) comp(rms(u),2) rms(p)"
+  done
+else
+  echo "Warning: no probe .txt files found in $FOLDER_PATH/probes/"
+fi
+
 
 JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 

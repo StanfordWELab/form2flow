@@ -1,4 +1,6 @@
 #!/bin/bash
+source /home/groups/gorle/codes/miniconda3/etc/profile.d/conda.sh
+conda activate form2flow
 
 # Base directory where files are located
 FOLDER_PATH="$1"
@@ -17,6 +19,8 @@ if [ ! -f "$RESPONSE_FILE" ]; then
     echo "Error: responses_surfer.txt not found in $FOLDER_PATH"
     exit 1
 fi
+
+airflow-geom-viz --input "$FOLDER_PATH/plane_definitions.json" --building "$FOLDER_PATH/building.stl" --output-dir "$FOLDER_PATH/html_exports" --site-model /oak/stanford/groups/gorle/building_airflow_viz/models/site.stl
 
 # Extract input parameters from responses_surfer.txt
 WIND_DIRECTION=$(grep -i "Wind direction:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')

@@ -1,4 +1,6 @@
 #!/bin/bash
+source /home/groups/gorle/codes/miniconda3/etc/profile.d/conda.sh
+conda activate form2flow
 
 # Function to extract base name without numbering
 get_base_name() {
@@ -21,6 +23,7 @@ find $DIR -type f -name "$TRIGGER_FILE" -print | while read -r tmp_file; do
     
     # Find corresponding IMAGES folder in the same directory
     image_folder="${dir_path}/IMAGES"
+    probes_folder="${dir_path}/probes_results"
     
     if [ -d "$image_folder" ]; then
         # Create output file path
@@ -62,6 +65,13 @@ find $DIR -type f -name "$TRIGGER_FILE" -print | while read -r tmp_file; do
         cd -
     else
         echo "Warning: No IMAGES folder found in $dir_path"
+    fi
+    if [ -d "$probes_folder" ]; then
+        echo "Runnin probe visualiations in: $probes_folder"
+        ./generate_post_config.py -- folder "${dir_path}"
+        airflow-viz --config "${dir_path}/config.json"
+    else
+        echo "Warning: No probe_results folder found in $dir_path"
     fi
     rm "$tmp_file"
     # break # added to slow down videos creation for now
