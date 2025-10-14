@@ -30,7 +30,7 @@ To check if it is running:
 `ps aux | grep rclone_monitor_runner.sh`
 
 To kill:
-`kill <ID>`
+`kill -9 <ID>`
 or create killfile:
 `./runner_outputs/rclone_monitor.kill`
 
