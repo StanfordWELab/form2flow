@@ -243,7 +243,7 @@ if compgen -G "$FOLDER_PATH/probes/*.txt" > /dev/null; then
   for txt in "$FOLDER_PATH"/probes/*.txt; do
     fname=$(basename "$txt" .txt)
     CHARLES_FILE="$CHARLES_FILE
-POINTCLOUD_PROBE NAME=probes_results/${fname} INTERVAL=30000 PRECISION=FLOAT FORMAT=BINARY GEOM=FILE probes/${fname}.txt VARS = avg(mag(u)) avg(p) comp(avg(u),0) comp(avg(u),1) comp(avg(u),2) comp(rms(u),0) comp(rms(u),1) comp(rms(u),2) rms(p)"
+POINTCLOUD_PROBE NAME=probes_results/${fname} INTERVAL=30000 PRECISION=FLOAT GEOM=FILE probes/${fname}.txt VARS = avg(mag(u)) avg(p) comp(avg(u),0) comp(avg(u),1) comp(avg(u),2) comp(rms(u),0) comp(rms(u),1) comp(rms(u),2) rms(p)"
   done
 else
   echo "Warning: no probe .txt files found in $FOLDER_PATH/probes/"
