@@ -20,10 +20,19 @@ if [ ! -f "$RESPONSE_FILE" ]; then
     exit 1
 fi
 
-airflow-geom-viz --input "$FOLDER_PATH/plane_definitions.json" --building "$FOLDER_PATH/building.stl" --output-dir "$FOLDER_PATH/html_exports" --site-model /oak/stanford/groups/gorle/building_airflow_viz/models/site.stl
+plane_file="$FOLDER_PATH/plane_definitions.json"
 
 # Extract input parameters from responses_surfer.txt
 WIND_DIRECTION=$(grep -i "Wind direction:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+
+plane_file="$FOLDER_PATH/plane_definitions.json"
+plane_file_rotated="$FOLDER_PATH/plane_definitions_rotated.json"
+jq empty $plane_file
+
+# Process JSON
+jq --argjson rot "$WIND_DIRECTION" '
+  .planes |= map(. + {rotation: $rot})
+' "$plane_file" > "$plane_file_rotated"
 
 # Parse domain dimensions (X0, X1, Y0, Y1, Z0, Z1)
 X0=$(grep -i "X0:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
@@ -63,6 +72,8 @@ echo "  Wind Direction: $WIND_DIRECTION°"
 echo "  Domain Dimensions: X0=$X0, X1=$X1, Y0=$Y0, Y1=$Y1, Z0=$Z0, Z1=$Z1"
 echo "Created surfer_file.in in $FOLDER_PATH"
 
+airflow-geom-viz --input "$plane_file_rotated" --building "$FOLDER_PATH/building_rotated.stl" --output-dir "$FOLDER_PATH/html_exports" --site-model "$FOLDER_PATH/site_rotated.stl"
+
 # Change directory to the submission folder and submit the job
 cd "$FOLDER_PATH"
 
@@ -71,4 +82,4 @@ module load system
 module load libpng/1.2.57
 module load openmpi/4.1.2
 
-/home/groups/gorle/cascade-inflow/bin/surfer.exe -i surfer_file.in > surfer.log
+/home/groups/gorle/cascade-inflow/bin/surfer.exe -i surfer_file.in > surfer_out.txt
