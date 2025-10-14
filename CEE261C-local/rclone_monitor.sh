@@ -31,7 +31,7 @@ rclone copy "$REMOTE_SUBS_DIR" "$LOCAL_DIR" \
     --filter "- *" \
     --skip-links \
     --stats-one-line \
-    --tpslimit 500 \
+    --tpslimit 10 \
     --drive-pacer-min-sleep 200ms \
     --drive-pacer-burst 5 \
     --verbose \
@@ -45,7 +45,7 @@ rclone copy "$REMOTE_RESULTS_DIR" "$LOCAL_DIR" \
     --filter "- *" \
     --skip-links \
     --stats-one-line \
-    --tpslimit 500 \
+    --tpslimit 10 \
     --drive-pacer-min-sleep 200ms \
     --drive-pacer-burst 5 \
     --verbose \
@@ -98,20 +98,24 @@ echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "- *_VID_*.png*" \
     --filter "+ */*.sbin" \
+    --filter "+ */*.README" \
+    --filter "+ */*.comp(*" \
     --filter "+ */surfer.log" \
     --filter "+ */stitch.log" \
     --filter "+ */charles.log" \
-    --filter "+ */responses.txt" \
     --filter "+ */*.png" \
     --filter "+ */slurm-*" \
+    --filter "+ */*.txt" \
     --filter "+ */*.mp4" \
     --filter "+ */*.pdf" \
     --filter "+ */*.html" \
     --filter "- *" \
     --skip-links \
     --stats-one-line \
-    --tpslimit 500 \
+    --tpslimit 10 \
     --drive-pacer-min-sleep 200ms \
     --drive-pacer-burst 5 \
     --log-level ERROR \
     --fast-list
+    # --progress
+echo "Rclone sync completed."
