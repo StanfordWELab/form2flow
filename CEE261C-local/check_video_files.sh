@@ -67,11 +67,12 @@ find $DIR -type f -name "$TRIGGER_FILE" -print | while read -r tmp_file; do
         echo "Warning: No IMAGES folder found in $dir_path"
     fi
     if [ -d "$probes_folder" ]; then
-        echo "Runnin probe visualiations in: $probes_folder"
-        ./generate_post_config.py -- folder "${dir_path}"
-        airflow-viz --config "${dir_path}/config.json"
+        dir_path_abs=$(realpath "$dir_path")
+        echo "Runnin probe visualiations in: $dir_path_abs"
+        ./generate_post_config.py --folder "${dir_path_abs}"
+        airflow-viz --config "${dir_path_abs}/config.json"
     else
-        echo "Warning: No probe_results folder found in $dir_path"
+        echo "Warning: No probe_results folder found in $dir_path_abs"
     fi
     rm "$tmp_file"
     # break # added to slow down videos creation for now
