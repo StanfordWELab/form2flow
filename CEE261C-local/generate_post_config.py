@@ -25,13 +25,13 @@ def main():
             "output_dir": f"{fldr}/output",
             "models": {
                 "building": {
-                    "path": f"{fldr}/building.stl",
+                    "path": f"{fldr}/building_rotated.stl",
                     "color": "lightgray",
                     "opacity": 1,
                     "name": "Main Building"
                 },
                 "site": {
-                    "path": "/oak/stanford/groups/gorle/building_airflow_viz/models/site.stl",
+                    "path": f"{fldr}/site_rotated.stl",
                     "color": "lightgray",
                     "opacity": 1,
                     "name": "Buildings"

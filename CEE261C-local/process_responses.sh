@@ -25,16 +25,20 @@ STITCH_URBAN_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_urbanEnv_template.in"
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
 
-airflow-generate --input "$FOLDER_PATH/plane_definitions.json" --output-dir "$FOLDER_PATH/probes"
-
 # Extract input parameters from responses.txt
 SUID=$(grep -i "SUID:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 SIMULATION_TYPE=$(grep -i "Simulation Type:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+SURFER_NUMBER=$(grep -i "Surfer Number:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r') 
 TARGET_BUILDING_HEIGHT=$(grep -i "Target Building Height (m):" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 GRID_RESOLUTION=$(grep -i "Grid Resolution:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 TERRAIN_CATEGORY=$(grep -i "Terrain Category:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Z_PLANES=$(grep -i "Post-processing z-plane heights:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Y_PLANES=$(grep -i "Post-processing y-plane distances:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+
+SURFER_FOLDER="$FOLDER_PATH/../submission_surfer-$SURFER_NUMBER"
+cp "$SURFER_FOLDER/plane_definitions_rotated.json" "$FOLDER_PATH/"
+cp "$SURFER_FOLDER/site_rotated.stl" "$FOLDER_PATH/"
+cp "$SURFER_FOLDER/building_rotated.stl" "$FOLDER_PATH/"
 
 # Convert Z_PLANES string into an array, trimming spaces from each element
 IFS=',' read -ra Z_PLANES_ARRAY <<< "$Z_PLANES"
@@ -72,7 +76,6 @@ module load system
 module load libpng/1.2.57
 module load openmpi/4.1.2
 
-output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
 
 # Extract dx, dy, and dz using awk
 dx=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dx:") print $(i+1)}')
@@ -104,6 +107,7 @@ JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
 # Template selection based on Simulation Type
 if [[ "$SIMULATION_TYPE" == "Empty domain" ]]; then
+    cp "$SURFER_FOLDER/surfer_emptyDomain.sbin" "$FOLDER_PATH/$SURFER_SBIN"
     DOUBLE_BUILDING_HEIGHT=$(echo "$TARGET_BUILDING_HEIGHT * 2" | bc)
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                         -e "s/{NJ}/$Y_mesh_int/" \
@@ -116,6 +120,7 @@ if [[ "$SIMULATION_TYPE" == "Empty domain" ]]; then
 /home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py"
 
 elif [[ "$SIMULATION_TYPE" == "Building in an urban environment" ]]; then
+    cp "$SURFER_FOLDER/surfer_urbanEnv.sbin" "$FOLDER_PATH/$SURFER_SBIN"
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                     -e "s/{NJ}/$Y_mesh_int/" \
                     -e "s/{NK}/$Z_mesh_int/" "$CHARLES_URBAN_TEMPLATE_FILE")
@@ -177,6 +182,7 @@ elif [[ "$SIMULATION_TYPE" == "Building in an urban environment" ]]; then
     $ESCAPED_WRITE_IMAGE_COMMANDS"
     
 else
+    cp "$SURFER_FOLDER/surfer_isolatedBuilding.sbin" "$FOLDER_PATH/$SURFER_SBIN"
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                     -e "s/{NJ}/$Y_mesh_int/" \
                     -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
@@ -237,6 +243,9 @@ else
     CHARLES_FILE="$CHARLES_FILE
     $ESCAPED_WRITE_IMAGE_COMMANDS"
 fi
+
+output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
+airflow-generate --input "$FOLDER_PATH/plane_definitions_rotated.json" --output-dir "$FOLDER_PATH/probes"
 
 # --- Append POINTCLOUD_PROBE commands for each ./probes/*.txt ---
 if compgen -G "$FOLDER_PATH/probes/*.txt" > /dev/null; then
