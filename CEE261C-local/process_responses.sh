@@ -186,17 +186,17 @@ $ESCAPED_WRITE_IMAGE_COMMANDS"
     
 
 output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
-airflow-generate --input "$FOLDER_PATH/plane_definitions_rotated.json" --output-dir "$FOLDER_PATH/probes"
+airflow-generate --input "$FOLDER_PATH/plane_definitions_rotated.json" --output-dir "$FOLDER_PATH/probes_locations"
 
 # --- Append POINTCLOUD_PROBE commands for each ./probes/*.txt ---
-if compgen -G "$FOLDER_PATH/probes/*.txt" > /dev/null; then
-  for txt in "$FOLDER_PATH"/probes/*.txt; do
+if compgen -G "$FOLDER_PATH/probes_locations/*.txt" > /dev/null; then
+  for txt in "$FOLDER_PATH"/probes_locations/*.txt; do
     fname=$(basename "$txt" .txt)
     CHARLES_FILE="$CHARLES_FILE
-POINTCLOUD_PROBE NAME=probes_results/${fname} INTERVAL=30000 PRECISION=FLOAT GEOM=FILE probes/${fname}.txt VARS = avg(mag(u)) avg(p) comp(avg(u),0) comp(avg(u),1) comp(avg(u),2) comp(rms(u),0) comp(rms(u),1) comp(rms(u),2) rms(p)"
+POINTCLOUD_PROBE NAME=probes_results/${fname} INTERVAL=30000 PRECISION=FLOAT GEOM=FILE probes_locations/${fname}.txt VARS = avg(mag(u)) avg(p) comp(avg(u),0) comp(avg(u),1) comp(avg(u),2) comp(rms(u),0) comp(rms(u),1) comp(rms(u),2) rms(p)"
   done
 else
-  echo "Warning: no probe .txt files found in $FOLDER_PATH/probes/"
+  echo "Warning: no probe .txt files found in $FOLDER_PATH/probes_locations/"
 fi
 
 
