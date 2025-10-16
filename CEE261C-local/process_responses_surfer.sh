@@ -24,14 +24,14 @@ plane_file="$FOLDER_PATH/plane_definitions.json"
 
 # Extract input parameters from responses_surfer.txt
 WIND_DIRECTION=$(grep -i "Wind direction:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-ROTATION=$(( (WIND_DIRECTION + 90) % 360 ))
+# ROTATION=$(( (WIND_DIRECTION + 90) % 360 ))
 
 plane_file="$FOLDER_PATH/plane_definitions.json"
 plane_file_rotated="$FOLDER_PATH/plane_definitions_rotated.json"
 jq empty $plane_file
 
 # Process JSON
-jq --argjson rot "$ROTATION" '
+jq --argjson rot "$WIND_DIRECTION" '
   .planes |= map(. + {rotation: $rot})
 ' "$plane_file" > "$plane_file_rotated"
 
