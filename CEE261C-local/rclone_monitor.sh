@@ -117,5 +117,8 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --drive-pacer-burst 5 \
     --log-level ERROR \
     --fast-list
+    # --no-traverse
+    # --update \
+    # --check-first
     # --progress
 echo "Rclone sync completed."

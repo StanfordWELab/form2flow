@@ -57,7 +57,7 @@ PRESSURE_VERBOSE
 # FLUSH_IMAGES 100
 
 #Boundary Conditions
-X0                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I 0.0357 LAGT_J 0.0062 LAGT_K 0.0147\
+X0                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I 3.57 LAGT_J 0.62 LAGT_K 1.47\
                                    CONTINUITY_CORRECTION NONE \
                                    PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
 X1                            = OUTLET 1.0 0.1 0.0 0.0 LOCAL_U
@@ -68,8 +68,8 @@ BUILDING                            = WALL
 # Y1 = SLIP
 
 
-#SPONGE STRENGTH 50 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE 10 0 0 1 0 0 FLIP 
-#A_SGS_SPONGE COEFF 100.0 GEOM PLANE -1 0.0 0.0 1.0 0.0 0.0
+SPONGE STRENGTH 50 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE 280 0 0 0 1 0 0 FLIP 
+A_SGS_SPONGE COEFF 100.0 GEOM PLANE -150 0.0 0.0 1.0 0.0 0.0
 
 #-> Keep for backup (to delete later)
 #WRITE_IMAGE NAME= ./IMAGES/TOP_AVG_UMAG INTERVAL=5000 TARGET 0 0 0.6 CAMERA 0 0 10 UP 0 1 0 SIZE 1920 970 WIDTH 3.2 GEOM PLANE -1 0 0.02 0 0 1 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB
