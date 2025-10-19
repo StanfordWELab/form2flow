@@ -9,11 +9,10 @@ globus session show
 ## Define the commented in directories.sh
 # REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
 source directories.sh
+REMOTE_RESULTS_DIR="/Team Drives/WELabTeamDrive/Courses/CEE261C-2025F/HW/"
 LOCAL_DIR="SUBS"
 DIR="$(pwd)/$LOCAL_DIR/"
 TMP_DIR="./tmp/"
-PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
-CURRENT_LIST="$TMP_DIR/rclone_current_list.txt"
 OAK_UUID="8b3a8b64-d4ab-4551-b37e-ca0092f769a7"
 GOOGLE_DRIVE_UUID="e1c8858b-d5aa-4e36-b97e-95913047ec2b"
 
@@ -22,9 +21,9 @@ if [ ! -d "$LOCAL_DIR" ]; then
     mkdir -p "$LOCAL_DIR"
 fi
 
-# sync results to remote
-echo "Copying $REMOTE_DIR to $DIR"
-globus transfer "$GOOGLE_DRIVE_UUID:$REMOTE_DIR" "$OAK_UUID:$DIR" \
+# sync remote to sherloc
+echo "Copying $REMOTE_SUBS_DIR to $DIR"
+globus transfer "$GOOGLE_DRIVE_UUID:$REMOTE_SUBS_DIR" "$OAK_UUID:$DIR" \
   --recursive \
   --include '*.sbin' \
   --include '*.stl' \
@@ -32,31 +31,10 @@ globus transfer "$GOOGLE_DRIVE_UUID:$REMOTE_DIR" "$OAK_UUID:$DIR" \
   --include 'kill*' \
   --include '*.json' \
   --exclude '*' \
-  --sync-level checksum \
+  --sync-level mtime \
   --skip-source-errors \
   --notify failed,inactive \
   --label "Filtered transfer $(date +%Y%m%d-%H%M%S)"
-
-
-# sync results to remote
-echo "Copying $DIR to $REMOTE_DIR"
-globus transfer "$OAK_UUID:$DIR" "$GOOGLE_DRIVE_UUID:$REMOTE_DIR" \
-  --recursive \
-  --include '*.sbin' \
-  --include '*.README' \
-  --include '*.comp(*' \
-  --include 'surfer.log' \
-  --include 'stitch.log' \
-  --include 'charles.log' \
-  --include '*.png' \
-  --include 'slurm-*' \
-  --exclude '*_VID_*.png*' \
-  --exclude '*' \
-  --sync-level checksum \
-  --skip-source-errors \
-  --notify failed,inactive \
-  --label "Upload results $(date +%Y%m%d-%H%M%S)"
-echo "RClone Monitor completed."
 
 JOB_COUNT=0
 MAX_JOBS=10
@@ -98,3 +76,23 @@ done
 
 # Check for video files
 ./check_video_files.sh "createVideos2.tmp" "./SUBS"
+
+# sync results to remote
+echo "Copying $DIR to $REMOTE_RESULTS_DIR"
+globus transfer "$OAK_UUID:$DIR" "$GOOGLE_DRIVE_UUID:$REMOTE_RESULTS_DIR" \
+  --recursive \
+  --include '*.sbin' \
+  --include '*.README' \
+  --include '*.comp(*' \
+  --include 'surfer.log' \
+  --include 'stitch.log' \
+  --include 'charles.log' \
+  --include '*.png' \
+  --include 'slurm-*' \
+  --exclude '*_VID_*.png*' \
+  --exclude '*' \
+  --sync-level mtime \
+  --skip-source-errors \
+  --notify failed,inactive \
+  --label "Upload results $(date +%Y%m%d-%H%M%S)"
+echo "RClone Monitor completed."
