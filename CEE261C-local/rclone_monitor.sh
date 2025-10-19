@@ -1,56 +1,62 @@
 #!/bin/bash
 
+# Load Modules
+module load system py-globus-cli
+globus whoami
+globus session show
+
 # Define remote and local directories
 ## Define the commented in directories.sh
 # REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
 source directories.sh
-REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025F/HW/"
-LOCAL_DIR="./SUBS/"
+LOCAL_DIR="SUBS"
+DIR="$(pwd)/$LOCAL_DIR/"
 TMP_DIR="./tmp/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
 CURRENT_LIST="$TMP_DIR/rclone_current_list.txt"
+OAK_UUID="8b3a8b64-d4ab-4551-b37e-ca0092f769a7"
+GOOGLE_DRIVE_UUID="e1c8858b-d5aa-4e36-b97e-95913047ec2b"
 
 # Ensure the local base directory exists
 if [ ! -d "$LOCAL_DIR" ]; then
     mkdir -p "$LOCAL_DIR"
 fi
 
-# Ensure the previous list file exists
-if [ ! -f "$PREVIOUS_LIST" ]; then
-    touch "$PREVIOUS_LIST"
-fi
+# sync results to remote
+echo "Copying $REMOTE_DIR to $DIR"
+globus transfer "$GOOGLE_DRIVE_UUID:$REMOTE_DIR" "$OAK_UUID:$DIR" \
+  --recursive \
+  --include '*.sbin' \
+  --include '*.stl' \
+  --include 'responses*.txt' \
+  --include 'kill*' \
+  --include '*.json' \
+  --exclude '*' \
+  --sync-level checksum \
+  --skip-source-errors \
+  --notify failed,inactive \
+  --label "Filtered transfer $(date +%Y%m%d-%H%M%S)"
+
 
 # sync results to remote
-echo "Copying $REMOTE_SUBS_DIR to $LOCAL_DIR"
-rclone copy "$REMOTE_SUBS_DIR" "$LOCAL_DIR" \
-    --filter "+ */*.sbin" \
-    --filter "+ */*.stl" \
-    --filter "+ */responses*.txt" \
-    --filter "+ */kill*" \
-    --filter "+ */*.json" \
-    --filter "- *" \
-    --skip-links \
-    --stats-one-line \
-    --tpslimit 10 \
-    --drive-pacer-min-sleep 200ms \
-    --drive-pacer-burst 5 \
-    --verbose \
-    --ignore-existing \
-    --fast-list
-
-# sync results to remote
-echo "Copying killfiles from $REMOTE_RESULTS_DIR to $LOCAL_DIR"
-rclone copy "$REMOTE_RESULTS_DIR" "$LOCAL_DIR" \
-    --filter "+ */kill*" \
-    --filter "- *" \
-    --skip-links \
-    --stats-one-line \
-    --tpslimit 10 \
-    --drive-pacer-min-sleep 200ms \
-    --drive-pacer-burst 5 \
-    --verbose \
-    --ignore-existing \
-    --fast-list
+echo "Copying $DIR to $REMOTE_DIR"
+globus transfer "$OAK_UUID:$DIR" "$GOOGLE_DRIVE_UUID:$REMOTE_DIR" \
+  --recursive \
+  --include '*.sbin' \
+  --include '*.README' \
+  --include '*.comp(*' \
+  --include 'surfer.log' \
+  --include 'stitch.log' \
+  --include 'charles.log' \
+  --include '*.png' \
+  --include 'slurm-*' \
+  --exclude '*_VID_*.png*' \
+  --exclude '*' \
+  --sync-level checksum \
+  --skip-source-errors \
+  --notify failed,inactive \
+  --label "Upload results $(date +%Y%m%d-%H%M%S)"
+echo "RClone Monitor completed."
 
 JOB_COUNT=0
 MAX_JOBS=10
@@ -92,33 +98,3 @@ done
 
 # Check for video files
 ./check_video_files.sh "createVideos2.tmp" "./SUBS"
-
-# sync results to remote
-echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
-rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
-    --filter "- *_VID_*.png*" \
-    --filter "+ */*.sbin" \
-    --filter "+ */*.README" \
-    --filter "+ */*.comp(*" \
-    --filter "+ */surfer.log" \
-    --filter "+ */stitch.log" \
-    --filter "+ */charles.log" \
-    --filter "+ */*.png" \
-    --filter "+ */slurm-*" \
-    --filter "+ */*.txt" \
-    --filter "+ */*.mp4" \
-    --filter "+ */*.pdf" \
-    --filter "+ */*.html" \
-    --filter "- *" \
-    --skip-links \
-    --stats-one-line \
-    --tpslimit 10 \
-    --drive-pacer-min-sleep 200ms \
-    --drive-pacer-burst 5 \
-    --log-level ERROR \
-    --fast-list
-    # --no-traverse
-    # --update \
-    # --check-first
-    # --progress
-echo "Rclone sync completed."
