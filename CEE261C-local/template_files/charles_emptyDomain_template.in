@@ -67,7 +67,7 @@ Z1                               = SLIP
 # Y1 = SLIP
 
 
-SPONGE STRENGTH 50 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE 280 0 0 0 1 0 0 FLIP 
+SPONGE STRENGTH 50 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE 280 0 0 1 0 0 FLIP 
 A_SGS_SPONGE COEFF 100.0 GEOM PLANE -150 0.0 0.0 1.0 0.0 0.0
 
 # Probing
