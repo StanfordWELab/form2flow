@@ -9,6 +9,7 @@ LOCAL_DIR="./SUBS/"
 TMP_DIR="./tmp/"
 PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
 CURRENT_LIST="$TMP_DIR/rclone_current_list.txt"
+SUBDIR="HW4"
 
 # Ensure the local base directory exists
 if [ ! -d "$LOCAL_DIR" ]; then
@@ -23,25 +24,11 @@ fi
 # sync results to remote
 echo "Copying $REMOTE_SUBS_DIR to $LOCAL_DIR"
 rclone copy "$REMOTE_SUBS_DIR" "$LOCAL_DIR" \
-    --filter "+ */*.sbin" \
-    --filter "+ */*.stl" \
-    --filter "+ */responses*.txt" \
-    --filter "+ */kill*" \
-    --filter "+ */*.json" \
-    --filter "- *" \
-    --skip-links \
-    --stats-one-line \
-    --tpslimit 10 \
-    --drive-pacer-min-sleep 200ms \
-    --drive-pacer-burst 5 \
-    --verbose \
-    --ignore-existing \
-    --fast-list
-
-# sync results to remote
-echo "Copying killfiles from $REMOTE_RESULTS_DIR to $LOCAL_DIR"
-rclone copy "$REMOTE_RESULTS_DIR" "$LOCAL_DIR" \
-    --filter "+ */kill*" \
+    --filter "+ **/${SUBDIR}/**/*.sbin" \
+    --filter "+ **/${SUBDIR}/**/*.stl" \
+    --filter "+ **/${SUBDIR}/**/responses*.txt" \
+    --filter "+ **/${SUBDIR}/**/kill*" \
+    --filter "+ **/${SUBDIR}/**/*.json" \
     --filter "- *" \
     --skip-links \
     --stats-one-line \
@@ -64,17 +51,17 @@ find "$LOCAL_DIR" -type f -name "responses*.txt" -print | while read -r resp_fil
         continue
     fi
 
-    # Process responses.txt
-    if [[ "$resp_file" == *"responses.txt" ]]; then
-        echo "Running process_responses.sh on $resp_file"
-        bash ./process_responses.sh "$dir_path"
-        JOB_COUNT=$((JOB_COUNT + 1))
-    fi
-
     # Process responses_surfer.txt
     if [[ "$resp_file" == *"responses_surfer.txt" ]]; then
         echo "Running process_responses_surfer.sh on $resp_file"
         bash ./process_responses_surfer.sh "$dir_path"
+        JOB_COUNT=$((JOB_COUNT + 1))
+    fi
+
+    # Process responses.txt
+    if [[ "$resp_file" == *"responses.txt" ]]; then
+        echo "Running process_responses.sh on $resp_file"
+        bash ./process_responses.sh "$dir_path"
         JOB_COUNT=$((JOB_COUNT + 1))
     fi
 
@@ -93,22 +80,36 @@ done
 # Check for video files
 ./check_video_files.sh "createVideos2.tmp" "./SUBS"
 
-# sync results to remote
+# sync killfiles to remote
+echo "Copying killfiles from $REMOTE_RESULTS_DIR to $LOCAL_DIR"
+rclone copy "$REMOTE_RESULTS_DIR" "$LOCAL_DIR" \
+    --filter "+ **/${SUBDIR}/**/kill*" \
+    --filter "- *" \
+    --skip-links \
+    --stats-one-line \
+    --tpslimit 10 \
+    --drive-pacer-min-sleep 200ms \
+    --drive-pacer-burst 5 \
+    --verbose \
+    --ignore-existing \
+    --fast-list
+
+# sync remote to drive
 echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
-    --filter "- *_VID_*.png*" \
-    --filter "+ */*.sbin" \
-    --filter "+ */*.README" \
-    --filter "+ */*.comp(*" \
-    --filter "+ */surfer.log" \
-    --filter "+ */stitch.log" \
-    --filter "+ */charles.log" \
-    --filter "+ */*.png" \
-    --filter "+ */slurm-*" \
-    --filter "+ */*.txt" \
-    --filter "+ */*.mp4" \
-    --filter "+ */*.pdf" \
-    --filter "+ */*.html" \
+    --filter "- **/${SUBDIR}/**/*_VID_*.png*" \
+    --filter "+ **/${SUBDIR}/**/*.sbin" \
+    --filter "+ **/${SUBDIR}/**/*.README" \
+    --filter "+ **/${SUBDIR}/**/*.comp(*" \
+    --filter "+ **/${SUBDIR}/**/surfer.log" \
+    --filter "+ **/${SUBDIR}/**/stitch.log" \
+    --filter "+ **/${SUBDIR}/**/charles.log" \
+    --filter "+ **/${SUBDIR}/**/*.png" \
+    --filter "+ **/${SUBDIR}/**/slurm-*" \
+    --filter "+ **/${SUBDIR}/**/*.txt" \
+    --filter "+ **/${SUBDIR}/**/*.mp4" \
+    --filter "+ **/${SUBDIR}/**/*.pdf" \
+    --filter "+ **/${SUBDIR}/**/*.html" \
     --filter "- *" \
     --skip-links \
     --stats-one-line \
