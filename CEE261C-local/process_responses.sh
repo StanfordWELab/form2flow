@@ -35,7 +35,7 @@ TERRAIN_CATEGORY=$(grep -i "Terrain Category:" "$RESPONSE_FILE" | awk -F': ' '{p
 Z_PLANES=$(grep -i "Post-processing z-plane heights:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 Y_PLANES=$(grep -i "Post-processing y-plane distances:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 
-SURFER_NUMBER=$(printf "%02d" "$SURFER_NUMBER")
+# SURFER_NUMBER=$(printf "%02d" "$SURFER_NUMBER")
 SURFER_FOLDER="$FOLDER_PATH/../submission_surfer-$SURFER_NUMBER"
 cp "$SURFER_FOLDER/plane_definitions_rotated.json" "$FOLDER_PATH/"
 cp "$SURFER_FOLDER/site_rotated.stl" "$FOLDER_PATH/"
