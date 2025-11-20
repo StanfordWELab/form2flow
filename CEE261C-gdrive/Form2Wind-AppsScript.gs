@@ -9,9 +9,9 @@ function onFormSubmit(e) {
   var userEmail = responses['Email Address'][0].split('@')[0];
 
   // Locate or create the SUBS folder
-  var subsFolder = getOrCreateFolder(classFolder, "SUBS-dev");
+  var subsFolder = getOrCreateFolder(classFolder, "SUBS");
   var userFolder = getOrCreateFolder(subsFolder, userEmail);
-  var assignmentFolder = getOrCreateFolder(userFolder, 'HW5');
+  var assignmentFolder = getOrCreateFolder(userFolder, 'Final');
   var subNo = getNextSubmissionNumber(assignmentFolder);
   var subFolderName = 'submission-' + ('0' + subNo).slice(-2);
   var subFolder = assignmentFolder.createFolder(subFolderName);
