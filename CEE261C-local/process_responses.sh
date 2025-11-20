@@ -37,9 +37,9 @@ Y_PLANES=$(grep -i "Post-processing y-plane distances:" "$RESPONSE_FILE" | awk -
 
 SURFER_NUMBER=$(printf "%02d" "$SURFER_NUMBER")
 SURFER_FOLDER="$FOLDER_PATH/../submission_surfer-$SURFER_NUMBER"
-cp "$SURFER_FOLDER/plane_definitions_rotated.json" "$FOLDER_PATH/"
-cp "$SURFER_FOLDER/site_rotated.stl" "$FOLDER_PATH/"
-cp "$SURFER_FOLDER/building_rotated.stl" "$FOLDER_PATH/"
+cp -n "$SURFER_FOLDER/plane_definitions_rotated.json" "$FOLDER_PATH/"
+cp -n "$SURFER_FOLDER/site_rotated.stl" "$FOLDER_PATH/"
+cp -n "$SURFER_FOLDER/building_rotated.stl" "$FOLDER_PATH/"
 
 # Convert Z_PLANES string into an array, trimming spaces from each element
 IFS=',' read -ra Z_PLANES_ARRAY <<< "$Z_PLANES"
@@ -108,7 +108,7 @@ JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
 # Template selection based on Simulation Type
 if [[ "$SIMULATION_TYPE" == "Empty domain" ]]; then
-    cp "$SURFER_FOLDER/surfer_emptyDomain.sbin" "$FOLDER_PATH/$SURFER_SBIN"
+    cp -n "$SURFER_FOLDER/surfer_emptyDomain.sbin" "$FOLDER_PATH/$SURFER_SBIN"
     DOUBLE_BUILDING_HEIGHT=$(echo "$TARGET_BUILDING_HEIGHT * 2" | bc)
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                         -e "s/{NJ}/$Y_mesh_int/" \
@@ -121,14 +121,14 @@ if [[ "$SIMULATION_TYPE" == "Empty domain" ]]; then
 /home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py"
 
 elif [[ "$SIMULATION_TYPE" == "Building in an urban environment" ]]; then
-    cp "$SURFER_FOLDER/surfer_urbanEnv.sbin" "$FOLDER_PATH/$SURFER_SBIN"
+    cp -n "$SURFER_FOLDER/surfer_urbanEnv.sbin" "$FOLDER_PATH/$SURFER_SBIN"
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                     -e "s/{NJ}/$Y_mesh_int/" \
                     -e "s/{NK}/$Z_mesh_int/" "$CHARLES_URBAN_TEMPLATE_FILE")
     STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_URBAN_TEMPLATE_FILE")
 
 else
-    cp "$SURFER_FOLDER/surfer_isolatedBuilding.sbin" "$FOLDER_PATH/$SURFER_SBIN"
+    cp -n "$SURFER_FOLDER/surfer_isolatedBuilding.sbin" "$FOLDER_PATH/$SURFER_SBIN"
     CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                     -e "s/{NJ}/$Y_mesh_int/" \
                     -e "s/{NK}/$Z_mesh_int/" "$CHARLES_TEMPLATE_FILE")
@@ -208,11 +208,23 @@ CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
 STITCH_FILE_PATH="$FOLDER_PATH/stitch_file.in"
 JOB_TEMPLATE_PATH="$FOLDER_PATH/job_template.sh"
 
-echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
-echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
-echo "$JOB_FILE" > "$JOB_TEMPLATE_PATH"
+if [ ! -f "$CHARLES_FILE_PATH" ]; then
+    echo "$CHARLES_FILE" > "$CHARLES_FILE_PATH"
+else
+    echo "$CHARLES_FILE_PATH already exists. Skipping creation to avoid overwriting."
+fi
+if [ ! -f "$STITCH_FILE_PATH" ]; then
+    echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
+else
+    echo "$STITCH_FILE_PATH already exists. Skipping creation to avoid overwriting."
+fi
+if [ ! -f "$JOB_TEMPLATE_PATH" ]; then
+    echo "$JOB_FILE" > "$JOB_TEMPLATE_PATH"
+else
+    echo "$JOB_TEMPLATE_PATH already exists. Skipping creation to avoid overwriting."
+fi
 # Copy the inflow files
-cp -r "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
+cp -rn "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
 
 # Print the details of the operation
 echo "Processing new folder: $FOLDER_PATH"
