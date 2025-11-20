@@ -243,6 +243,8 @@ else
 fi
 # Copy the inflow files
 cp -rn "$TEMPLATE_DIR/inflow_files" "$FOLDER_PATH"
+# Copy cooling.dat for temperature
+cp -n "$TEMPLATE_DIR/cooling.dat" "$FOLDER_PATH"
 
 # Print the details of the operation
 echo "Processing new folder: $FOLDER_PATH"
