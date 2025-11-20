@@ -86,46 +86,50 @@ function extractFileId(url) {
  */
 function copyFormFileToFolder(responses, fieldLabel, destFolder) {
   var result = { success: false, originalName: null, message: "" };
+  var numberOfFiles = responses[fieldLabel] ? responses[fieldLabel].length : 0;
 
-  if (!responses[fieldLabel] || !responses[fieldLabel][0]) {
+  if (numberOfFiles === 0) {
     result.message = "No file uploaded for field: " + fieldLabel;
     Logger.log(result.message);
     return result;
   }
+  
+  for (var i = 0; i < numberOfFiles; i++) {
 
-  // Handle potential multiple URLs (comma-separated)
-  var candidate = responses[fieldLabel][0];
-  var firstUrl = candidate.split(/,\s*/)[0];
-  var fileId = extractFileId(firstUrl);
+    // Handle potential multiple URLs (comma-separated)
+    var candidate = responses[fieldLabel][i];
+    var firstUrl = candidate.split(/,\s*/)[0];
+    var fileId = extractFileId(firstUrl);
 
-  if (!fileId) {
-    result.message = "Invalid file URL for field: " + fieldLabel;
-    Logger.log(result.message + " | URL: " + firstUrl);
-    return result;
-  }
-
-  try {
-    var srcFile = DriveApp.getFileById(fileId);
-    result.originalName = srcFile.getName();
-    var parts = result.originalName.split(' - ');
-    var base = parts[0].trim();
-    var extMatch = result.originalName.match(/(\.[^.]*)$/);
-    var ext = extMatch ? extMatch[1] : '';
-    if (ext && base.endsWith(ext)) {
-      base = base.slice(0, -ext.length);
+    if (!fileId) {
+      result.message = "Invalid file URL for field: " + fieldLabel;
+      Logger.log(result.message + " | URL: " + firstUrl);
+      continue; // Changed from 'return' to 'continue'
     }
-    var destName = base + ext;
 
-    // Copy with a consistent name
-    srcFile.makeCopy(destName, destFolder);
+    try {
+      var srcFile = DriveApp.getFileById(fileId);
+      result.originalName = srcFile.getName();
+      var parts = result.originalName.split(' - ');
+      var base = parts[0].trim();
+      var extMatch = result.originalName.match(/(\.[^.]*)$/);
+      var ext = extMatch ? extMatch[1] : '';
+      if (ext && base.endsWith(ext)) {
+        base = base.slice(0, -ext.length);
+      }
+      var destName = base + ext;
 
-    result.success = true;
-    result.message = "Copied as " + destName;
-    Logger.log("Copied '" + result.originalName + "' to '" + destName + "' in " + destFolder.getName());
-  } catch (err) {
-    result.message = "Error copying file for field '" + fieldLabel + "': " + err.message;
-    Logger.log(result.message);
+      // Copy with a consistent name
+      srcFile.makeCopy(destName, destFolder);
+
+      result.success = true;
+      result.message = "Copied as " + destName;
+      Logger.log("Copied '" + result.originalName + "' to '" + destName + "' in " + destFolder.getName());
+    } catch (err) {
+      result.message = "Error copying file for field '" + fieldLabel + "': " + err.message;
+      Logger.log(result.message);
+      // Continue to next file instead of returning
+    }
   }
-
   return result;
 }
