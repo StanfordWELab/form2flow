@@ -1,40 +1,17 @@
 #!/bin/bash
 
-# Load Modules
-module load system py-globus-cli
-globus whoami
-globus session show
-
 # Define remote and local directories
 ## Define the commented in directories.sh
 # REMOTE_SUBS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025/SUBS/"
 source directories.sh
-LOCAL_DIR="SUBS"
-DIR="$(pwd)/$LOCAL_DIR/"
-TMP_DIR="./tmp/"
-PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
-CURRENT_LIST="$TMP_DIR/rclone_current_list.txt"
-SUBDIR="HW4"
+REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025F/HW/"
+LOCAL_DIR="./SUBS/"
+SUBDIR="HW5"
 
 # Ensure the local base directory exists
 if [ ! -d "$LOCAL_DIR" ]; then
     mkdir -p "$LOCAL_DIR"
 fi
-
-# sync results to remote
-echo "Copying $REMOTE_DIR to $DIR"
-globus transfer "$GOOGLE_DRIVE_UUID:$REMOTE_DIR" "$OAK_UUID:$DIR" \
-  --recursive \
-  --include '*.sbin' \
-  --include '*.stl' \
-  --include 'responses*.txt' \
-  --include 'kill*' \
-  --include '*.json' \
-  --exclude '*' \
-  --sync-level checksum \
-  --skip-source-errors \
-  --notify failed,inactive \
-  --label "Filtered transfer $(date +%Y%m%d-%H%M%S)"
 
 
 # sync results to remote
@@ -67,17 +44,17 @@ find "$LOCAL_DIR" -type f -name "responses*.txt" -print | while read -r resp_fil
         continue
     fi
 
-    # Process responses_surfer.txt
-    if [[ "$resp_file" == *"responses_surfer.txt" ]]; then
-        echo "Running process_responses_surfer.sh on $resp_file"
-        bash ./process_responses_surfer.sh "$dir_path"
-        JOB_COUNT=$((JOB_COUNT + 1))
-    fi
-
     # Process responses.txt
     if [[ "$resp_file" == *"responses.txt" ]]; then
         echo "Running process_responses.sh on $resp_file"
         bash ./process_responses.sh "$dir_path"
+        JOB_COUNT=$((JOB_COUNT + 1))
+    fi
+
+    # Process responses_surfer.txt 
+    if [[ "$resp_file" == *"responses_surfer.txt" ]]; then
+        echo "Running process_responses_surfer.sh on $resp_file"
+        bash ./process_responses_surfer.sh "$dir_path"
         JOB_COUNT=$((JOB_COUNT + 1))
     fi
 
@@ -115,8 +92,8 @@ echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "- **/${SUBDIR}/**/*_VID_*.png*" \
     --filter "+ **/${SUBDIR}/**/*.sbin" \
-    --filter "+ **/${SUBDIR}/**/*.README" \
-    --filter "+ **/${SUBDIR}/**/*.comp(*" \
+    --filter "+ **/${SUBDIR}/**/probes/*" \
+    --filter "+ **/${SUBDIR}/**/probes_results/*" \
     --filter "+ **/${SUBDIR}/**/surfer.log" \
     --filter "+ **/${SUBDIR}/**/stitch.log" \
     --filter "+ **/${SUBDIR}/**/charles.log" \
