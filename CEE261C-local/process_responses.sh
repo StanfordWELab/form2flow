@@ -37,11 +37,10 @@ Y_PLANES=$(grep -i "Post-processing y-plane distances:" "$RESPONSE_FILE" | awk -
 
 # SURFER_NUMBER=$(printf "%02d" "$SURFER_NUMBER")
 SURFER_FOLDER="$FOLDER_PATH/../submission_surfer-$SURFER_NUMBER"
-SURFER_RESPONSE_FILE="$FOLDER_PATH/responses_surfer-reference.txt"
+SURFER_RESPONSE_FILE="$SURFER_FOLDER/responses_surfer.txt"
 cp -n "$SURFER_FOLDER/plane_definitions_rotated.json" "$FOLDER_PATH/"
 cp -n "$SURFER_FOLDER/site_rotated.stl" "$FOLDER_PATH/"
 cp -n "$SURFER_FOLDER/building_rotated.stl" "$FOLDER_PATH/"
-cp -n "$SURFER_FOLDER/responses_surfer.txt" "$SURFER_RESPONSE_FILE"
 
 # Check if the responses_surfer.txt file existss
 if [ ! -f "$SURFER_RESPONSE_FILE" ]; then
