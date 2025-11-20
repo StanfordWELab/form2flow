@@ -19,7 +19,8 @@ echo "Copying $REMOTE_SUBS_DIR to $LOCAL_DIR"
 rclone copy "$REMOTE_SUBS_DIR" "$LOCAL_DIR" \
     --filter "+ **/${SUBDIR}/**/*.sbin" \
     --filter "+ **/${SUBDIR}/**/*.stl" \
-    --filter "+ **/${SUBDIR}/**/responses*.txt" \
+    --filter "+ **/${SUBDIR}/**/*.txt" \
+    --filter "+ **/${SUBDIR}/**/*.in" \
     --filter "+ **/${SUBDIR}/**/kill*" \
     --filter "+ **/${SUBDIR}/**/*.json" \
     --filter "- *" \
