@@ -9,9 +9,9 @@ function onFormSubmit(e) {
   var userEmail = responses['Email Address'][0].split('@')[0];
 
   // Locate or create the SUBS folder
-  var subsFolder = getOrCreateFolder(classFolder, "SUBS");
+  var subsFolder = getOrCreateFolder(classFolder, "SUBS-dev");
   var userFolder = getOrCreateFolder(subsFolder, userEmail);
-  var assignmentFolder = getOrCreateFolder(userFolder, 'HW4');
+  var assignmentFolder = getOrCreateFolder(userFolder, 'HW5');
   var subNo = getNextSubmissionNumber(assignmentFolder);
   var subFolderName = 'submission-' + ('0' + subNo).slice(-2);
   var subFolder = assignmentFolder.createFolder(subFolderName);
@@ -25,6 +25,11 @@ function onFormSubmit(e) {
   var terrainCategory = responses['The inflow boundary condition applies a logarithmic mean velocity profile at the domain inlet, with U = 15 m/s at a height of 20 m.\n\nTo generate turbulence, a divergence-free digital filter creates a synthetic turbulent field. The inflow atmospheric boundary layer statistics follow the profiles outlined in the class slides.\n\nThe simulation runs for 30,000 timesteps with Δt = 0.05 s, totaling 1,500 seconds of simulated time. Statistics are collected after a 300-second burn-in period\n\nBelow you can choose the terrain category.'][0];
   var zPlaneHeights = responses['Post-processing z-plane. Height in meters [z1, z2, z3, etc.]'][0];
   var yPlaneDistances = responses['Post-processing y-plane. Distance from the center in meters [y1, y2, y3, etc.]'][0];
+
+  var fileFieldLabel = 'Upload optional simulation files';
+
+  // --- Copy files into the submission folder ---
+  var stlResult = copyFormFileToFolder(responses, fileFieldLabel, subFolder);
 
   // Write responses.txt file
   var fileName = 'responses.txt';
@@ -65,7 +70,62 @@ function getNextSubmissionNumber(folder) {
   return highestNumber + 1;
 }
 
+/**
+ * Extracts a Drive file ID from a URL string.
+ * Works for typical Google Forms/Drive share links.
+ */
 function extractFileId(url) {
-  var match = url.match(/[-\w]{25,}/);
+  var match = url && url.match(/[-\w]{25,}/);
   return match ? match[0] : null;
+}
+
+/**
+ * Copies files uploaded via a Google Form file-upload question into destFolder,
+ *
+ * - If permissions prevent access to the files, the error is logged and returned.
+ */
+function copyFormFileToFolder(responses, fieldLabel, destFolder) {
+  var result = { success: false, originalName: null, message: "" };
+
+  if (!responses[fieldLabel] || !responses[fieldLabel][0]) {
+    result.message = "No file uploaded for field: " + fieldLabel;
+    Logger.log(result.message);
+    return result;
+  }
+
+  // Handle potential multiple URLs (comma-separated)
+  var candidate = responses[fieldLabel][0];
+  var firstUrl = candidate.split(/,\s*/)[0];
+  var fileId = extractFileId(firstUrl);
+
+  if (!fileId) {
+    result.message = "Invalid file URL for field: " + fieldLabel;
+    Logger.log(result.message + " | URL: " + firstUrl);
+    return result;
+  }
+
+  try {
+    var srcFile = DriveApp.getFileById(fileId);
+    result.originalName = srcFile.getName();
+    var parts = result.originalName.split(' - ');
+    var base = parts[0].trim();
+    var extMatch = result.originalName.match(/(\.[^.]*)$/);
+    var ext = extMatch ? extMatch[1] : '';
+    if (ext && base.endsWith(ext)) {
+      base = base.slice(0, -ext.length);
+    }
+    var destName = base + ext;
+
+    // Copy with a consistent name
+    srcFile.makeCopy(destName, destFolder);
+
+    result.success = true;
+    result.message = "Copied as " + destName;
+    Logger.log("Copied '" + result.originalName + "' to '" + destName + "' in " + destFolder.getName());
+  } catch (err) {
+    result.message = "Error copying file for field '" + fieldLabel + "': " + err.message;
+    Logger.log(result.message);
+  }
+
+  return result;
 }
