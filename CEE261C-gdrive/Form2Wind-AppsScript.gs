@@ -86,33 +86,32 @@ function extractFileId(url) {
  */
 function copyFormFileToFolder(responses, fieldLabel, destFolder) {
   var result = { success: false, originalName: null, message: "" };
-  var numberOfFiles = responses[fieldLabel] ? responses[fieldLabel].length : 0;
 
-  if (numberOfFiles === 0) {
+  if (!responses[fieldLabel] || responses[fieldLabel].length === 0) {
     result.message = "No file uploaded for field: " + fieldLabel;
     Logger.log(result.message);
     return result;
   }
   
-  for (var i = 0; i < numberOfFiles; i++) {
-
-    // Handle potential multiple URLs (comma-separated)
-    var candidate = responses[fieldLabel][i];
-    var firstUrl = candidate.split(/,\s*/)[0];
-    var fileId = extractFileId(firstUrl);
+  // Split the comma-separated URLs from the single string
+  var urlString = responses[fieldLabel][0];
+  var urls = urlString.split(/,\s*/);
+  Logger.log("Found " + urls.length + " file URLs");
+  
+  for (var i = 0; i < urls.length; i++) {
+    var fileId = extractFileId(urls[i]);
 
     if (!fileId) {
-      result.message = "Invalid file URL for field: " + fieldLabel;
-      Logger.log(result.message + " | URL: " + firstUrl);
-      continue; // Changed from 'return' to 'continue'
+      Logger.log("Invalid file URL at index " + i + ": " + urls[i]);
+      continue;
     }
 
     try {
       var srcFile = DriveApp.getFileById(fileId);
-      result.originalName = srcFile.getName();
-      var parts = result.originalName.split(' - ');
+      var originalName = srcFile.getName();
+      var parts = originalName.split(' - ');
       var base = parts[0].trim();
-      var extMatch = result.originalName.match(/(\.[^.]*)$/);
+      var extMatch = originalName.match(/(\.[^.]*)$/);
       var ext = extMatch ? extMatch[1] : '';
       if (ext && base.endsWith(ext)) {
         base = base.slice(0, -ext.length);
@@ -124,11 +123,9 @@ function copyFormFileToFolder(responses, fieldLabel, destFolder) {
 
       result.success = true;
       result.message = "Copied as " + destName;
-      Logger.log("Copied '" + result.originalName + "' to '" + destName + "' in " + destFolder.getName());
+      Logger.log("Copied '" + originalName + "' to '" + destName + "' in " + destFolder.getName());
     } catch (err) {
-      result.message = "Error copying file for field '" + fieldLabel + "': " + err.message;
-      Logger.log(result.message);
-      // Continue to next file instead of returning
+      Logger.log("Error copying file at index " + i + ": " + err.message);
     }
   }
   return result;
