@@ -6,27 +6,21 @@
 source directories.sh
 REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025F/HW/"
 LOCAL_DIR="./SUBS/"
-TMP_DIR="./tmp/"
-PREVIOUS_LIST="$LOCAL_DIR/rclone_previous_list.txt"
-CURRENT_LIST="$TMP_DIR/rclone_current_list.txt"
-SUBDIR="HW4"
+SUBDIR="HW5"
 
 # Ensure the local base directory exists
 if [ ! -d "$LOCAL_DIR" ]; then
     mkdir -p "$LOCAL_DIR"
 fi
 
-# Ensure the previous list file exists
-if [ ! -f "$PREVIOUS_LIST" ]; then
-    touch "$PREVIOUS_LIST"
-fi
 
 # sync results to remote
 echo "Copying $REMOTE_SUBS_DIR to $LOCAL_DIR"
 rclone copy "$REMOTE_SUBS_DIR" "$LOCAL_DIR" \
     --filter "+ **/${SUBDIR}/**/*.sbin" \
     --filter "+ **/${SUBDIR}/**/*.stl" \
-    --filter "+ **/${SUBDIR}/**/responses*.txt" \
+    --filter "+ **/${SUBDIR}/**/*.txt" \
+    --filter "+ **/${SUBDIR}/**/*.in" \
     --filter "+ **/${SUBDIR}/**/kill*" \
     --filter "+ **/${SUBDIR}/**/*.json" \
     --filter "- *" \
@@ -51,17 +45,17 @@ find "$LOCAL_DIR" -type f -name "responses*.txt" -print | while read -r resp_fil
         continue
     fi
 
-    # Process responses_surfer.txt
-    if [[ "$resp_file" == *"responses_surfer.txt" ]]; then
-        echo "Running process_responses_surfer.sh on $resp_file"
-        bash ./process_responses_surfer.sh "$dir_path"
-        JOB_COUNT=$((JOB_COUNT + 1))
-    fi
-
     # Process responses.txt
     if [[ "$resp_file" == *"responses.txt" ]]; then
         echo "Running process_responses.sh on $resp_file"
         bash ./process_responses.sh "$dir_path"
+        JOB_COUNT=$((JOB_COUNT + 1))
+    fi
+
+    # Process responses_surfer.txt 
+    if [[ "$resp_file" == *"responses_surfer.txt" ]]; then
+        echo "Running process_responses_surfer.sh on $resp_file"
+        bash ./process_responses_surfer.sh "$dir_path"
         JOB_COUNT=$((JOB_COUNT + 1))
     fi
 
@@ -99,8 +93,8 @@ echo "Copying $LOCAL_DIR to $REMOTE_RESULTS_DIR"
 rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "- **/${SUBDIR}/**/*_VID_*.png*" \
     --filter "+ **/${SUBDIR}/**/*.sbin" \
-    --filter "+ **/${SUBDIR}/**/*.README" \
-    --filter "+ **/${SUBDIR}/**/*.comp(*" \
+    --filter "+ **/${SUBDIR}/**/probes/*" \
+    --filter "+ **/${SUBDIR}/**/probes_results/*" \
     --filter "+ **/${SUBDIR}/**/surfer.log" \
     --filter "+ **/${SUBDIR}/**/stitch.log" \
     --filter "+ **/${SUBDIR}/**/charles.log" \

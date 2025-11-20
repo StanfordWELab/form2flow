@@ -57,7 +57,7 @@ PRESSURE_VERBOSE
 # FLUSH_IMAGES 100
 
 #Boundary Conditions
-X0                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I 3.57 LAGT_J 0.62 LAGT_K 1.47\
+X0                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I .357 LAGT_J .062 LAGT_K .147\
                                    CONTINUITY_CORRECTION NONE \
                                    PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
 X1                            = OUTLET 1.0 0.1 0.0 0.0 LOCAL_U
@@ -67,13 +67,13 @@ Z1                               = SLIP
 # Y1 = SLIP
 
 
-SPONGE STRENGTH 50 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE 280 0 0 1 0 0 FLIP 
-A_SGS_SPONGE COEFF 100.0 GEOM PLANE -150 0.0 0.0 1.0 0.0 0.0
+SPONGE STRENGTH 0.5 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE {X_SPONGE} 0 0 1 0 0 FLIP 
+A_SGS_SPONGE COEFF 100.0 GEOM PLANE {X_P_SPONGE} 0.0 0.0 1.0 0.0 0.0
 
 # Probing
 # Lines at 0,0,0
 PROBE NAME=probes/building_loc INTERVAL=10000 GEOM=LINE 0 0 0.1 0 0 {DOUBLE_BUILDING_HEIGHT} 20 VARS= comp(avg(u),0) comp(rms(u),0)/comp(avg(u),0) comp(rms(u),1)/comp(avg(u),0) comp(rms(u),2)/comp(avg(u),0)
-PROBE NAME=probes/building_height_timeseries INTERVAL=1 GEOM=POINT 0 0 {BUILDING_HEIGHT} VARS= comp(u,0)
+PROBE NAME=probes/building_height_timeseries INTERVAL=1 GEOM=POINT 0 0 {BUILDING_HEIGHT} VARS= comp(u,0) p
 
 
 
