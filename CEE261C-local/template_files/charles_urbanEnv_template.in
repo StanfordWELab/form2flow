@@ -29,7 +29,6 @@ CHECK_INTERVAL 100   #log file report every n steps
 
 RESET_STATS
 #WHEN (step>10000)
-STATS u mag(u) p rho
 RESET_STATS TIME=500
 #ENDWHEN
 
@@ -56,14 +55,42 @@ PRESSURE_VERBOSE
 # FLUSH_PROBES 1000 #default is 1000
 # FLUSH_IMAGES 100
 
+#########################################
+########### NO TEMPERATURE ##############
+#########################################
+
+STATS u mag(u) p rho
+BUILDING = WALL
+X0 = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I .357 LAGT_J .062 LAGT_K .147\
+    CONTINUITY_CORRECTION NONE \
+    PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
+
+
+#########################################
+########### TEMPERATURE #################
+#########################################
+
+# INIT SC0 5.0
+# STATS u mag(u) p rho SC0
+# PASSIVE_SCALARS 1
+# SC0.SC_LAM 0.71
+# SC0.SC_T 0.85
+# TEMP_SOLVER BOUSSINESQ
+# BUILDING = WALL SCO 5
+# X0 = 
+    # CONTINUITY_CORRECTION NONE \
+    # PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
+    # \ SCO 0
+
+
+#########################################
+###### THEN EDIT OUTPUTS AS NEEDED ######
+#########################################
+
 #Boundary Conditions
-X0                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I .357 LAGT_J .062 LAGT_K .147\
-                                   CONTINUITY_CORRECTION NONE \
-                                   PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
 X1                            = OUTLET 1.0 0.1 0.0 0.0 LOCAL_U
 Z0                            = WM_ALG ROUGHNESS_HEIGHT {TERRAIN_CATEGORY}
 Z1                               = SLIP
-BUILDING                            = WALL
 SITEMODEL                           = WALL
 # Y0 = SLIP
 # Y1 = SLIP
