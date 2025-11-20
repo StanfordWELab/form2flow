@@ -37,24 +37,17 @@ Y_PLANES=$(grep -i "Post-processing y-plane distances:" "$RESPONSE_FILE" | awk -
 
 # SURFER_NUMBER=$(printf "%02d" "$SURFER_NUMBER")
 SURFER_FOLDER="$FOLDER_PATH/../submission_surfer-$SURFER_NUMBER"
-SURFER_RESPONSE_FILE="$SURFER_FOLDER/responses_surfer.txt"
+SURFER_RESPONSE_FILE="$FOLDER_PATH/responses_surfer-reference.txt"
 cp -n "$SURFER_FOLDER/plane_definitions_rotated.json" "$FOLDER_PATH/"
 cp -n "$SURFER_FOLDER/site_rotated.stl" "$FOLDER_PATH/"
 cp -n "$SURFER_FOLDER/building_rotated.stl" "$FOLDER_PATH/"
-cp -n "$SURFER_RESPONSE_FILE" "$FOLDER_PATH/"
+cp -n "$SURFER_FOLDER/responses_surfer.txt" "$SURFER_RESPONSE_FILE"
 
-# Check if the responses_surfer.txt file exists
+# Check if the responses_surfer.txt file existss
 if [ ! -f "$SURFER_RESPONSE_FILE" ]; then
-    echo "Error: responses_surfer.txt not found in $FOLDER_PATH"
+    echo "Error: $SURFER_RESPONSE_FILE not found"
     exit 1
 fi
-
-# Parse domain dimensions (X0, X1)
-X0=$(grep -i "X0:" "$SURFER_RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-X1=$(grep -i "X1:" "$SURFER_RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
-
-X_SPONGE=$(echo "$X1 - 20" | bc)
-X_P_SPONGE=$(echo "$X0 + 150" | bc)
 
 # Convert Z_PLANES string into an array, trimming spaces from each element
 IFS=',' read -ra Z_PLANES_ARRAY <<< "$Z_PLANES"
@@ -86,17 +79,18 @@ case "$GRID_RESOLUTION" in
     *) echo "Invalid grid resolution: $GRID_RESOLUTION"; exit 1 ;;
 esac
 
-# Extract domain size from surfer output
-module purge
-module load system
-module load libpng/1.2.57
-module load openmpi/4.1.2
-
+# Parse domain dimensions (X0, X1)
+X0=$(grep -i "X0:" "$SURFER_RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+X1=$(grep -i "X1:" "$SURFER_RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+Y0=$(grep -i "Y0:" "$SURFER_RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+Y1=$(grep -i "Y1:" "$SURFER_RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+Z0=$(grep -i "Z0:" "$SURFER_RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
+Z1=$(grep -i "Z1:" "$SURFER_RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
 
 # Extract dx, dy, and dz using awk
-dx=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dx:") print $(i+1)}')
-dy=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dy:") print $(i+1)}')
-dz=$(echo "$output" | awk '{for (i=1; i<=NF; i++) if ($i == "dz:") print $(i+1)}')
+dx=$(echo "$X1 - $X0" | bc)
+dy=$(echo "$Y1 - $Y0" | bc)
+dz=$(echo "$Z1 - $Z0" | bc)
 
 echo "Extracted values: dx=$dx, dy=$dy, dz=$dz"
 
@@ -118,6 +112,8 @@ if (( $(echo "$Z_mesh_int < $MIN_DZ" | bc -l) )); then Z_mesh_int=$MIN_DZ; fi
 # Print results
 echo "Y distance in mesh units: $Y_mesh_int"
 echo "Z distance in mesh units: $Z_mesh_int"
+X_SPONGE=$(echo "$X1 - 20" | bc)
+X_P_SPONGE=$(echo "$X0 + 150" | bc)
 
 JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
 
