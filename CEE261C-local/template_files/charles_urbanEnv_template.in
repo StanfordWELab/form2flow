@@ -79,8 +79,8 @@ X0 = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I .357 LAGT_J .062 LAGT_
 # BUILDING = WALL SCO 5
 # X0 = 
     # CONTINUITY_CORRECTION NONE \
-    # PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
-    # \ SCO 0
+    # PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat \
+    # SCO 0
 
 
 #########################################
