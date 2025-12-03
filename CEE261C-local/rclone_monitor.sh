@@ -6,7 +6,7 @@
 source directories.sh
 REMOTE_RESULTS_DIR="WeLabTeamDrive:/Courses/CEE261C-2025F/HW/"
 LOCAL_DIR="./SUBS/"
-SUBDIR="HW5"
+SUBDIR="Final"
 
 # Ensure the local base directory exists
 if [ ! -d "$LOCAL_DIR" ]; then
@@ -98,6 +98,7 @@ rclone copy "$LOCAL_DIR" "$REMOTE_RESULTS_DIR" \
     --filter "+ **/${SUBDIR}/**/surfer.log" \
     --filter "+ **/${SUBDIR}/**/stitch.log" \
     --filter "+ **/${SUBDIR}/**/charles.log" \
+    --filter "+ **/${SUBDIR}/**/*.in" \
     --filter "+ **/${SUBDIR}/**/*.png" \
     --filter "+ **/${SUBDIR}/**/slurm-*" \
     --filter "+ **/${SUBDIR}/**/*.txt" \

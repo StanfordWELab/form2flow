@@ -18,7 +18,6 @@ HELMHOLTZ_SOS 340.65  #speed of sound at relevant conditions
 
 #RUNTIME 0.95  #hours, wall time
 NSTEPS = 30000
-TIMESTEP DT = 5e-02
 CHECK_INTERVAL 100   #log file report every n steps
 
 #WRITE_RESULT NAME=data/result INTERVAL=10000  #write a full restart file every n steps
@@ -29,8 +28,6 @@ CHECK_INTERVAL 100   #log file report every n steps
 
 RESET_STATS
 #WHEN (step>10000)
-STATS u mag(u) p rho
-RESET_STATS TIME=500
 #ENDWHEN
 
 # subgrid model
@@ -56,14 +53,45 @@ PRESSURE_VERBOSE
 # FLUSH_PROBES 1000 #default is 1000
 # FLUSH_IMAGES 100
 
+#########################################
+########### NO TEMPERATURE ##############
+#########################################
+
+TIMESTEP DT = 5e-02
+RESET_STATS TIME = 500
+STATS u mag(u) p rho
+BUILDING = WALL
+X0 = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I .357 LAGT_J .062 LAGT_K .147\
+    CONTINUITY_CORRECTION NONE \
+    PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
+
+
+#########################################
+########### TEMPERATURE #################
+#########################################
+
+# TIMESTEP DT = 2.5e-02
+# RESET_STATS TIME = 250
+# INIT SC0 5.0
+# STATS u mag(u) p rho SC0
+# PASSIVE_SCALARS 1
+# SC0.SC_LAM 0.71
+# SC0.SC_T 0.85
+# TEMP_SOLVER BOUSSINESQ
+# BUILDING = WALL SC0 5
+# X0 = 
+    # CONTINUITY_CORRECTION NONE \
+    # PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat \
+    # SC0 0
+
+#########################################
+###### THEN EDIT OUTPUTS AS NEEDED ######
+#########################################
+
 #Boundary Conditions
-X0                           = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I .357 LAGT_J .062 LAGT_K .147\
-                                   CONTINUITY_CORRECTION NONE \
-                                   PROFILE ASCII_UREY ./inflow_files/test_WOW_x2.5_mod.dat
 X1                            = OUTLET 1.0 0.1 0.0 0.0 LOCAL_U
 Z0                            = WM_ALG ROUGHNESS_HEIGHT {TERRAIN_CATEGORY}
 Z1                               = SLIP
-BUILDING                            = WALL
 # Y0 = SLIP
 # Y1 = SLIP
 
@@ -71,13 +99,6 @@ BUILDING                            = WALL
 SPONGE STRENGTH 0.5 VELOCITY PROFILE ./inflow_files/test_WOW_x2.5_mod.dat GEOM PLANE {X_SPONGE} 0 0 1 0 0 FLIP 
 A_SGS_SPONGE COEFF 100.0 GEOM PLANE {X_P_SPONGE} 0.0 0.0 1.0 0.0 0.0
 
-#-> Keep for backup (to delete later)
-#WRITE_IMAGE NAME= ./IMAGES/TOP_AVG_UMAG INTERVAL=5000 TARGET 0 0 0.6 CAMERA 0 0 10 UP 0 1 0 SIZE 1920 970 WIDTH 3.2 GEOM PLANE -1 0 0.02 0 0 1 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB
-#WRITE_IMAGE NAME= ./IMAGES/TOP_RMS_UMAG INTERVAL=5000 TARGET 0 0 0.6 CAMERA 0 0 10 UP 0 1 0 SIZE 1920 970 WIDTH 3.2 GEOM PLANE -1 0 0.02 0 0 1 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB
-#WRITE_IMAGE NAME= ./IMAGES/SIDE_AVG_UMAG INTERVAL=5000 TARGET 0 0 0.4 CAMERA 0 -2.7 0.4 UP 0 0 1 SIZE 1920 970 WIDTH 2.6 GEOM PLANE -1 0 0.02 0 1 0 VAR avg(mag(u)) RANGE 0 15.3 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED X1,Y0,Z1
-#WRITE_IMAGE NAME= ./IMAGES/SIDE_RMS_UMAG INTERVAL=5000 TARGET 0 0 0.4 CAMERA 0 -2.7 0.4 UP 0 0 1 SIZE 1920 970 WIDTH 2.6 GEOM PLANE -1 0 0.02 0 1 0 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED X1,Y0,Z1
-
-# IMAGING
 
 
 

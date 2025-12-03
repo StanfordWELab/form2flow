@@ -74,12 +74,8 @@ echo "  Domain Dimensions: X0=$X0, X1=$X1, Y0=$Y0, Y1=$Y1, Z0=$Z0, Z1=$Z1"
 echo "Created surfer_file.in in $FOLDER_PATH"
 
 # Change directory to the submission folder and submit the job
+source cascade_reference.sh
 cd "$FOLDER_PATH"
 
-module purge
-module load system
-module load libpng/1.2.57
-module load openmpi/4.1.2
-
-/home/groups/gorle/cascade-inflow/bin/surfer.exe -i surfer_file.in > surfer_out.txt
+"$CASCADE_DIR/bin/surfer.exe" -i surfer_file.in > surfer_out.txt
 airflow-geom-viz --input "./plane_definitions_rotated.json" --building "./building_rotated.stl" --output-dir "./html_exports" --site-model "./site_rotated.stl"
