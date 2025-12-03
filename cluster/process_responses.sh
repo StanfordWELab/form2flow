@@ -130,7 +130,7 @@ if [[ "$SIMULATION_TYPE" == "Empty domain" ]]; then
     STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
     
     JOB_FILE="$JOB_FILE
-/home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py"
+/home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../python/post_python.py"
 
 elif [[ "$SIMULATION_TYPE" == "Building in an urban environment" ]]; then
     cp -n "$SURFER_FOLDER/surfer_urbanEnv.sbin" "$FOLDER_PATH/$SURFER_SBIN"

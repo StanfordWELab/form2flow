@@ -69,7 +69,7 @@ find $DIR -type f -name "$TRIGGER_FILE" -print | while read -r tmp_file; do
     if [ -d "$probes_folder" ]; then
         dir_path_abs=$(realpath "$dir_path")
         echo "Runnin probe visualiations in: $dir_path_abs"
-        ./generate_post_config.py --folder "${dir_path_abs}"
+        ./python/generate_post_config.py --folder "${dir_path_abs}"
         airflow-viz --config "${dir_path_abs}/config.json"
     else
         echo "Warning: No probe_results folder found in $dir_path_abs"
