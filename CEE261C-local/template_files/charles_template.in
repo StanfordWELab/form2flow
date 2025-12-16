@@ -70,8 +70,8 @@ X0 = INFLOW_TURB_ABL JDIR 1 KDIR 2 NJ {NJ} NK {NK} LAGT_I .357 LAGT_J .062 LAGT_
 ########### TEMPERATURE #################
 #########################################
 
-# TIMESTEP DT = 2.5e-02
-# RESET_STATS TIME = 250
+# TIMESTEP DT = 1e-02
+# RESET_STATS TIME = 100
 # INIT SC0 5.0
 # STATS u mag(u) p rho SC0
 # PASSIVE_SCALARS 1
