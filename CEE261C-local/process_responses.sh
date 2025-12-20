@@ -11,7 +11,7 @@ TEMPLATE_DIR="./template_files/"
 # Define the (shared) template file paths
 CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_include_template.in"
 STITCH_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_include_template.in"
-JOB_TEMPLATE_FILE="$TEMPLATE_DIR/job_include_template.sh"
+JOB_TEMPLATE_FILE="$TEMPLATE_DIR/job_template.sh"
 
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
@@ -117,6 +117,7 @@ CHARLES_INCLUDE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
                 -e "s/{X_SPONGE}/$X_SPONGE/" \
                 -e "s/{X_P_SPONGE}/$X_P_SPONGE/" "$CHARLES_TEMPLATE_FILE")
 
+WRITE_IMAGE_COMMANDS=""
 # Add WRITE_IMAGE command only for the first Z_HEIGHT for video
 if [ ${#Z_PLANES_ARRAY[@]} -gt 0 ]; then
     FIRST_Z_HEIGHT=${Z_PLANES_ARRAY[0]}
@@ -126,7 +127,6 @@ WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${FIRST_Z_HEIGHT} INTERVAL=20 TARGET 0
 fi
 
 # Generate WRITE_IMAGE commands for each z-plane height
-WRITE_IMAGE_COMMANDS=""
 for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
     Z_CAMERA_POS=$(echo "$Z_HEIGHT + 100" | bc)
     WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
