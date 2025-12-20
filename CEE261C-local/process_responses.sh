@@ -8,22 +8,16 @@ FOLDER_PATH="$1"
 # Directory containing the template files
 TEMPLATE_DIR="./template_files/"
 
-# Define the template file paths
-CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_template.in"
-STITCH_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_template.in"
+# Define the (shared) template file paths
+CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_include_template.in"
+STITCH_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_include_template.in"
 JOB_TEMPLATE_FILE="$TEMPLATE_DIR/job_template.sh"
-SURFER_SBIN="./surfer_output.sbin"
-
-# Define the template file paths for emptyDomain files
-CHARLES_EMPTYDOMAIN_TEMPLATE_FILE="$TEMPLATE_DIR/charles_emptyDomain_template.in"
-STITCH_EMPTYDOMAIN_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_emptyDomain_template.in"
-
-# Define the template file paths for urban case files
-CHARLES_URBAN_TEMPLATE_FILE="$TEMPLATE_DIR/charles_urbanEnv_template.in"
-STITCH_URBAN_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_urbanEnv_template.in"
 
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
+
+# Surfer sbin path
+SURFER_SBIN="./surfer_output.sbin"
 
 # Extract input parameters from responses.txt
 SUID=$(grep -i "SUID:" "$RESPONSE_FILE" | awk -F': ' '{print $2}' | tr -d '\r')
@@ -114,47 +108,25 @@ echo "Z distance in mesh units: $Z_mesh_int"
 X_SPONGE=$(echo "$X1 - 20" | bc)
 X_P_SPONGE=$(echo "$X0 + 150" | bc)
 
+# Fill in the shareed include files
+STITCH_INCLUDE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
 JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
+CHARLES_INCLUDE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
+                -e "s/{NJ}/$Y_mesh_int/" \
+                -e "s/{NK}/$Z_mesh_int/" \
+                -e "s/{X_SPONGE}/$X_SPONGE/" \
+                -e "s/{X_P_SPONGE}/$X_P_SPONGE/" "$CHARLES_TEMPLATE_FILE")
 
-# Template selection based on Simulation Type
-if [[ "$SIMULATION_TYPE" == "Empty domain" ]]; then
-    cp -n "$SURFER_FOLDER/surfer_emptyDomain.sbin" "$FOLDER_PATH/$SURFER_SBIN"
-    DOUBLE_BUILDING_HEIGHT=$(echo "$TARGET_BUILDING_HEIGHT * 2" | bc)
-    CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
-                        -e "s/{NJ}/$Y_mesh_int/" \
-                        -e "s/{NK}/$Z_mesh_int/" \
-                        -e "s/{BUILDING_HEIGHT}/$TARGET_BUILDING_HEIGHT/" \
-                        -e "s/{DOUBLE_BUILDING_HEIGHT}/$DOUBLE_BUILDING_HEIGHT/" \
-                        -e "s/{X_SPONGE}/$X_SPONGE/" \
-                        -e "s/{X_P_SPONGE}/$X_P_SPONGE/" "$CHARLES_EMPTYDOMAIN_TEMPLATE_FILE")
-    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_EMPTYDOMAIN_TEMPLATE_FILE")
-    
-    JOB_FILE="$JOB_FILE
-/home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py"
-
-elif [[ "$SIMULATION_TYPE" == "Building in an urban environment" ]]; then
-    cp -n "$SURFER_FOLDER/surfer_urbanEnv.sbin" "$FOLDER_PATH/$SURFER_SBIN"
-    CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
-                    -e "s/{NJ}/$Y_mesh_int/" \
-                    -e "s/{NK}/$Z_mesh_int/" \
-                    -e "s/{X_SPONGE}/$X_SPONGE/" \
-                    -e "s/{X_P_SPONGE}/$X_P_SPONGE/" "$CHARLES_URBAN_TEMPLATE_FILE")
-                    
-    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_URBAN_TEMPLATE_FILE")
-
-else
-    cp -n "$SURFER_FOLDER/surfer_isolatedBuilding.sbin" "$FOLDER_PATH/$SURFER_SBIN"
-    CHARLES_FILE=$(sed -e "s/{TERRAIN_CATEGORY}/$TERRAIN_VALUE/" \
-                    -e "s/{NJ}/$Y_mesh_int/" \
-                    -e "s/{NK}/$Z_mesh_int/" \
-                    -e "s/{X_SPONGE}/$X_SPONGE/" \
-                    -e "s/{X_P_SPONGE}/$X_P_SPONGE/" "$CHARLES_TEMPLATE_FILE")
-
-    STITCH_FILE=$(sed "s/{MESH_SIZE}/$MESH_SIZE/" "$STITCH_TEMPLATE_FILE")
+WRITE_IMAGE_COMMANDS=""
+# Add WRITE_IMAGE command only for the first Z_HEIGHT for video
+if [ ${#Z_PLANES_ARRAY[@]} -gt 0 ]; then
+    FIRST_Z_HEIGHT=${Z_PLANES_ARRAY[0]}
+    Z_CAMERA_POS=$(echo "$FIRST_Z_HEIGHT + 100" | bc)
+    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
+WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${FIRST_Z_HEIGHT} INTERVAL=20 TARGET 0 0 ${FIRST_Z_HEIGHT} CAMERA 0 0 ${Z_CAMERA_POS} UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${FIRST_Z_HEIGHT} 0 0 1 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB"
 fi
 
 # Generate WRITE_IMAGE commands for each z-plane height
-WRITE_IMAGE_COMMANDS=""
 for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
     Z_CAMERA_POS=$(echo "$Z_HEIGHT + 100" | bc)
     WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
@@ -167,12 +139,12 @@ for Z_HEIGHT in "${Z_PLANES_ARRAY[@]}"; do
 WRITE_IMAGE NAME= ./IMAGES/TOP_STD_UMAG_Z_${Z_HEIGHT} INTERVAL=10000 TARGET 0 0 ${Z_HEIGHT} CAMERA 0 0 ${Z_CAMERA_POS} UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${Z_HEIGHT} 0 0 1 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB"
 done
 
-# Add WRITE_IMAGE command only for the first Z_HEIGHT
-if [ ${#Z_PLANES_ARRAY[@]} -gt 0 ]; then
-    FIRST_Z_HEIGHT=${Z_PLANES_ARRAY[0]}
-    Z_CAMERA_POS=$(echo "$FIRST_Z_HEIGHT + 100" | bc)
+# Add WRITE_IMAGE command only for the first Y_DISTANCE
+if [ ${#Y_PLANES_ARRAY[@]} -gt 0 ]; then
+    FIRST_Y_DISTANCE=${Y_PLANES_ARRAY[0]}
+    Y_CAMERA_POS=$(echo "$FIRST_Y_DISTANCE - 0.1" | bc)
     WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-WRITE_IMAGE NAME= ./IMAGES/TOP_VID_UMAG_Z_${FIRST_Z_HEIGHT} INTERVAL=20 TARGET 0 0 ${FIRST_Z_HEIGHT} CAMERA 0 0 ${Z_CAMERA_POS} UP 0 1 0 SIZE 1920 970 WIDTH 408 GEOM PLANE 0 0 ${FIRST_Z_HEIGHT} 0 0 1 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB"
+WRITE_IMAGE NAME= ./IMAGES/SIDE_VID_UMAG_Y_${FIRST_Y_DISTANCE} INTERVAL=20 TARGET 0 ${FIRST_Y_DISTANCE} 50 CAMERA 0 ${Y_CAMERA_POS} 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${FIRST_Y_DISTANCE} 0 0 1 0 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
 fi
 
 # Generate WRITE_IMAGE commands for each y-plane distance
@@ -188,42 +160,56 @@ for Y_DISTANCE in "${Y_PLANES_ARRAY[@]}"; do
 WRITE_IMAGE NAME= ./IMAGES/SIDE_STD_UMAG_Y_${Y_DISTANCE} INTERVAL=10000 TARGET 0 ${Y_DISTANCE} 50 CAMERA 0 ${Y_CAMERA_POS} 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${Y_DISTANCE} 0 0 1 0 VAR rms(mag(u)) RANGE 0 6 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
 done
 
-# Add WRITE_IMAGE command only for the first Y_DISTANCE
-if [ ${#Y_PLANES_ARRAY[@]} -gt 0 ]; then
-    FIRST_Y_DISTANCE=${Y_PLANES_ARRAY[0]}
-    Y_CAMERA_POS=$(echo "$FIRST_Y_DISTANCE - 0.1" | bc)
-    WRITE_IMAGE_COMMANDS="$WRITE_IMAGE_COMMANDS
-WRITE_IMAGE NAME= ./IMAGES/SIDE_VID_UMAG_Y_${FIRST_Y_DISTANCE} INTERVAL=20 TARGET 0 ${FIRST_Y_DISTANCE} 50 CAMERA 0 ${Y_CAMERA_POS} 50 UP 0 0 1 SIZE 1512 860 WIDTH 300 GEOM PLANE 0 ${FIRST_Y_DISTANCE} 0 0 1 0 VAR mag(u) RANGE 0 24 COLORMAP GRAYSCALE_RGB HIDE_ZONES_NAMED Y0"
-fi
-
 # Escape special characters in WRITE_IMAGE_COMMANDS for use in sed
 ESCAPED_WRITE_IMAGE_COMMANDS=$(echo "$WRITE_IMAGE_COMMANDS" | sed 's/[&\\]/\\&/g')
 
 # Append the WRITE_IMAGE commands to the end of the CHARLES file
-CHARLES_FILE="$CHARLES_FILE
+CHARLES_INCLUDE="$CHARLES_INCLUDE
 $ESCAPED_WRITE_IMAGE_COMMANDS"
-    
 
-output=$(/home/groups/gorle/cascade-inflow/bin/surfer.exe --SURF SBIN "$FOLDER_PATH/$SURFER_SBIN" --BBOX | grep "bounding box dimensions")
 airflow-generate --input "$FOLDER_PATH/plane_definitions_rotated.json" --output-dir "$FOLDER_PATH/probes_locations"
 
 # --- Append POINTCLOUD_PROBE commands for each ./probes/*.txt ---
 if compgen -G "$FOLDER_PATH/probes_locations/*.txt" > /dev/null; then
   for txt in "$FOLDER_PATH"/probes_locations/*.txt; do
     fname=$(basename "$txt" .txt)
-    CHARLES_FILE="$CHARLES_FILE
+    CHARLES_INCLUDE="$CHARLES_INCLUDE
 POINTCLOUD_PROBE NAME=probes_results/${fname} INTERVAL=30000 PRECISION=FLOAT GEOM=FILE probes_locations/${fname}.txt VARS = avg(mag(u)) avg(p) comp(avg(u),0) comp(avg(u),1) comp(avg(u),2) comp(rms(u),0) comp(rms(u),1) comp(rms(u),2) rms(p)"
   done
 else
   echo "Warning: no probe .txt files found in $FOLDER_PATH/probes_locations/"
 fi
 
+# Adjust for selected Simulation Type
+if [[ "$SIMULATION_TYPE" == "Empty domain" ]]; then
+    cp -n "$SURFER_FOLDER/surfer_emptyDomain.sbin" "$FOLDER_PATH/$SURFER_SBIN"
+    DOUBLE_BUILDING_HEIGHT=$(echo "$TARGET_BUILDING_HEIGHT * 2" | bc)
+    CHARLES_EMPTYDOMAIN_FILE="$TEMPLATE_DIR/charles_emptyDomain_template.in"
+    CHARLES_FILE=$(sed  -e "s/{BUILDING_HEIGHT}/$TARGET_BUILDING_HEIGHT/" \
+                        -e "s/{DOUBLE_BUILDING_HEIGHT}/$DOUBLE_BUILDING_HEIGHT/" "$CHARLES_EMPTYDOMAIN_FILE")
+    STITCH_FILE=$(cat "$TEMPLATE_DIR/stitch_emptyDomain_template.in")
+    
+    # Adding post processing line for empty domain
+    JOB_FILE="$JOB_FILE
+/home/groups/gorle/codes/miniconda3/envs/form2flow/bin/python ../../../../post_python.py"
+    # End of added pos processing line
 
-JOB_FILE=$(sed "s/{SUID}/$SUID/" "$JOB_TEMPLATE_FILE")
+elif [[ "$SIMULATION_TYPE" == "Building in an urban environment" ]]; then
+    cp -n "$SURFER_FOLDER/surfer_urbanEnv.sbin" "$FOLDER_PATH/$SURFER_SBIN"
+    CHARLES_FILE=$(cat "$TEMPLATE_DIR/charles_urbanEnv_template.in")
+    STITCH_FILE=$(cat "$TEMPLATE_DIR/stitch_urbanEnv_template.in")
+
+else
+    cp -n "$SURFER_FOLDER/surfer_isolatedBuilding.sbin" "$FOLDER_PATH/$SURFER_SBIN"
+    CHARLES_FILE=$(cat "$TEMPLATE_DIR/charles_isolated_template.in")
+    STITCH_FILE=$(cat "$TEMPLATE_DIR/stitch_isolated_template.in")
+fi
 
 # Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
+CHARLES_INCLUDE_FILE_PATH="$FOLDER_PATH/charles_include.in"
 STITCH_FILE_PATH="$FOLDER_PATH/stitch_file.in"
+STITCH_INCLUDE_FILE_PATH="$FOLDER_PATH/stitch_include.in"
 JOB_TEMPLATE_PATH="$FOLDER_PATH/job_template.sh"
 
 if [ ! -f "$CHARLES_FILE_PATH" ]; then
@@ -231,10 +217,20 @@ if [ ! -f "$CHARLES_FILE_PATH" ]; then
 else
     echo "$CHARLES_FILE_PATH already exists. Skipping creation to avoid overwriting."
 fi
+if [ ! -f "$CHARLES_INCLUDE_FILE_PATH" ]; then
+    echo "$CHARLES_INCLUDE" > "$CHARLES_INCLUDE_FILE_PATH"
+else
+    echo "$CHARLES_INCLUDE_FILE_PATH already exists. Skipping creation to avoid overwriting."
+fi
 if [ ! -f "$STITCH_FILE_PATH" ]; then
     echo "$STITCH_FILE" > "$STITCH_FILE_PATH"
 else
     echo "$STITCH_FILE_PATH already exists. Skipping creation to avoid overwriting."
+fi
+if [ ! -f "$STITCH_INCLUDE_FILE_PATH" ]; then
+    echo "$STITCH_INCLUDE" > "$STITCH_INCLUDE_FILE_PATH"
+else
+    echo "$STITCH_INCLUDE_FILE_PATH already exists. Skipping creation to avoid overwriting."
 fi
 if [ ! -f "$JOB_TEMPLATE_PATH" ]; then
     echo "$JOB_FILE" > "$JOB_TEMPLATE_PATH"
@@ -251,7 +247,7 @@ echo "Processing new folder: $FOLDER_PATH"
 echo "Input parameters:"
 echo "  Mesh Refinement: $MESH_REFINEMENT"
 echo "  Terrain Inflow Category: $TERRAIN_CATEGORY"
-echo "Created charles_file.in, stitch_file.in, copied inflow files, and job_template.sh to $FOLDER_PATH"
+echo "Created run riles in to $FOLDER_PATH"
 
 # Change directory to the submission folder and submit the job
 cd "$FOLDER_PATH"
