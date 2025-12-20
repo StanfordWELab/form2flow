@@ -13,7 +13,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, PageBreak
 kappa = 0.41   # von Kármán constant
 #z0 = 0.27      # Roughness length
 
-inflow_file = './template_files/inflow_files/test_WOW_x2.5_mod.dat'
+inflow_file = './inflow_files/test_WOW_x2.5_mod.dat'
 
 # Function to read inflow file
 def read_inflow_file(file):
@@ -273,14 +273,14 @@ def generate_pdf_with_reportlab(pdf_filename, z_values, data_files, x_labels, ti
 
 # File paths
 data_files = [
-    "./probes/building_loc.comp(rms(u),0)_d_comp(avg(u),0)",
-    "./probes/building_loc.comp(rms(u),1)_d_comp(avg(u),0)",
-    "./probes/building_loc.comp(rms(u),2)_d_comp(avg(u),0)",
-    "./probes/building_loc.comp(avg(u),0)"
+    "./probes/building_loc.COMP(RMS(U),0)_d_COMP(AVG(U),0)",
+    "./probes/building_loc.COMP(RMS(U),1)_d_COMP(AVG(U),0)",
+    "./probes/building_loc.COMP(RMS(U),2)_d_COMP(AVG(U),0)",
+    "./probes/building_loc.COMP(AVG(U),0)"
 ]
 
 coord_file = "./probes/building_loc.README"
-time_series_file = "./probes/building_height_timeseries.comp(u,0)"
+time_series_file = "./probes/building_height_timeseries.COMP(U,0)"
 
 # Read coordinates (Z values)
 z_values = read_probe_coordinates(coord_file)
