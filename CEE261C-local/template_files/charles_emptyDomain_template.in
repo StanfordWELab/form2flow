@@ -1,4 +1,4 @@
-INCLUDE ./charles_template.in
+INCLUDE ./charles_include.in
 
 # Probing
 # Lines at 0,0,0

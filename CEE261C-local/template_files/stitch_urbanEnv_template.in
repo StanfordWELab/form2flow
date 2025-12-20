@@ -1,3 +1,6 @@
+#Read the input file: output of SURFER
+PART main SURF SBIN surfer_output.sbin
+
 # Refine in boxes
 # Level: 0.5^Nlevel
 HCP_WINDOW BOX -300 50 -100 100 0 50 LEVEL 1 NLAYERS 5
@@ -7,4 +10,4 @@ HCP_WINDOW BOX -100 100 -100 100 0 30 LEVEL 3 NLAYERS 5
 # Refine on surfaces
 HCP_WINDOW FAZONE BUILDING LEVEL 4 NLAYERS 5  
 
-INCLUDE stitch_template.in
+INCLUDE stitch_include.in

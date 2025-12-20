@@ -9,9 +9,9 @@ FOLDER_PATH="$1"
 TEMPLATE_DIR="./template_files/"
 
 # Define the (shared) template file paths
-CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_template.in"
-STITCH_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_template.in"
-JOB_TEMPLATE_FILE="$TEMPLATE_DIR/job_template.sh"
+CHARLES_TEMPLATE_FILE="$TEMPLATE_DIR/charles_include_template.in"
+STITCH_TEMPLATE_FILE="$TEMPLATE_DIR/stitch_include_template.in"
+JOB_TEMPLATE_FILE="$TEMPLATE_DIR/job_include_template.sh"
 
 # Path to the responses.txt file
 RESPONSE_FILE="$FOLDER_PATH/responses.txt"
@@ -207,9 +207,9 @@ fi
 
 # Write the generated files to the folder
 CHARLES_FILE_PATH="$FOLDER_PATH/charles_file.in"
-CHARLES_INCLUDE_FILE_PATH="$FOLDER_PATH/charles_template.in"
+CHARLES_INCLUDE_FILE_PATH="$FOLDER_PATH/charles_include.in"
 STITCH_FILE_PATH="$FOLDER_PATH/stitch_file.in"
-STITCH_INCLUDE_FILE_PATH="$FOLDER_PATH/stitch_template.in"
+STITCH_INCLUDE_FILE_PATH="$FOLDER_PATH/stitch_include.in"
 JOB_TEMPLATE_PATH="$FOLDER_PATH/job_template.sh"
 
 if [ ! -f "$CHARLES_FILE_PATH" ]; then

@@ -1,4 +1,4 @@
-INCLUDE ./charles_template.in
+INCLUDE ./charles_include.in
 SITEMODEL = WALL
 BUILDING = WALL
 # BUILDING = WALL SCO 0 #FOR TEMPERATURE RUNS

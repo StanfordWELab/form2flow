@@ -3,10 +3,6 @@
 # SET BACKGROUND MESH
 HCP_DELTA {MESH_SIZE}/(sqrt(3)*0.5)  #~0.144337, MESH_SIZE in Z
 
-#Read the input file: output of SURFER
-PART main SURF SBIN surfer_output.sbin
-
-
 #This offsets the point seeding in the Z-direction, sometimes
 #if a point lies right on the boundary it creates an issue
 #building periodicity
